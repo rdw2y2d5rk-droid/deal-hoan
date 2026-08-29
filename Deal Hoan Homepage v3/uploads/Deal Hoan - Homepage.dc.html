@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F7F7;font-family:'Be Vietnam Pro',sans-serif;color:#171717;-webkit-font-smoothing:antialiased;}
+a{color:#171717;text-decoration:none;} a:hover{color:#EE4D2D;}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,12px);}to{opacity:1;transform:translate(-50%,0);}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#F7F7F7;">
+
+<!-- Top utility bar -->
+<div style="background:#171717;color:#A3A3A3;font-size:12px;">
+  <div style="max-width:1280px;margin:0 auto;padding:7px 24px;display:flex;justify-content:space-between;gap:16px;">
+    <div style="display:flex;gap:20px;">
+      <span>Hoàn tiền từ Shopee · TikTok Shop · Lazada</span>
+      <a href="#" style="color:#A3A3A3;">Cách hoạt động</a>
+      <a href="#" style="color:#A3A3A3;">Câu hỏi thường gặp</a>
+    </div>
+    <div style="display:flex;gap:20px;">
+      <a href="#" style="color:#A3A3A3;">Tải app</a>
+      <a href="#" style="color:#4ADE80;font-weight:600;">Mời bạn — nhận hoa hồng</a>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<header style="background:#FFFFFF;border-bottom:1px solid #ECECEC;position:sticky;top:0;z-index:50;">
+  <div style="max-width:1280px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:28px;">
+    <a href="#" style="display:flex;align-items:center;gap:10px;flex:none;">
+      <span style="width:36px;height:36px;border-radius:10px;background:#EE4D2D;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Archivo',sans-serif;font-weight:800;font-size:17px;letter-spacing:-0.5px;">D₫</span>
+      <span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:20px;letter-spacing:-0.3px;">Deal<span style="color:#EE4D2D;">Hoàn</span></span>
+    </a>
+    <div style="flex:1;max-width:560px;display:flex;align-items:center;background:#F7F7F7;border:1.5px solid #E5E5E5;border-radius:12px;padding:0 6px 0 16px;height:44px;gap:10px;" style-focus="border-color:#EE4D2D;">
+      <span style="color:#737373;font-size:15px;">⌕</span>
+      <input placeholder="Tìm sản phẩm, deal, mã giảm giá…" style="flex:1;border:none;background:transparent;outline:none;font-family:'Be Vietnam Pro',sans-serif;font-size:14px;color:#171717;"></input>
+      <button style="background:#EE4D2D;color:#fff;border:none;border-radius:9px;height:34px;padding:0 18px;font-family:'Be Vietnam Pro',sans-serif;font-weight:600;font-size:13px;cursor:pointer;" style-hover="background:#D73211;">Tìm deal</button>
+    </div>
+    <nav style="display:flex;gap:22px;font-size:14px;font-weight:500;flex:none;">
+      <a href="#" style="color:#EE4D2D;font-weight:600;">Deal hot</a>
+      <a href="#">Mã giảm giá</a>
+      <a href="#">Danh mục</a>
+      <a href="#">Cashback</a>
+    </nav>
+    <div style="display:flex;gap:10px;align-items:center;flex:none;">
+      <a href="#" style="display:flex;align-items:center;gap:7px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;color:#16A34A;">₫ 128.500đ</a>
+      <button style="background:#171717;color:#fff;border:none;border-radius:10px;height:38px;padding:0 16px;font-family:'Be Vietnam Pro',sans-serif;font-weight:600;font-size:13px;cursor:pointer;" style-hover="background:#000;">Đăng nhập</button>
+    </div>
+  </div>
+</header>
+
+<!-- Hero -->
+<section style="background:#FFFFFF;border-bottom:1px solid #ECECEC;">
+  <div style="max-width:1280px;margin:0 auto;padding:56px 24px 48px;display:grid;grid-template-columns:1.15fr 0.85fr;gap:56px;align-items:center;">
+    <div>
+      <div style="display:inline-flex;align-items:center;gap:8px;background:#FFF1ED;color:#D73211;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;margin-bottom:20px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:#EE4D2D;"></span>
+        1.248 deal mới hôm nay
+      </div>
+      <h1 style="font-family:'Archivo',sans-serif;font-size:46px;line-height:1.12;font-weight:800;letter-spacing:-1.2px;margin:0 0 16px;text-wrap:pretty;">Săn deal, lấy mã,<br>mua xong <span style="color:#16A34A;">được hoàn tiền</span></h1>
+      <p style="font-size:16px;line-height:1.6;color:#737373;margin:0 0 28px;max-width:480px;text-wrap:pretty;">DealHoàn gom deal tốt nhất từ Shopee, TikTok Shop và Lazada, tự áp mã giảm giá và tính sẵn số tiền bạn thực trả — kèm cashback về ví.</p>
+      <div style="display:flex;gap:12px;margin-bottom:28px;">
+        <a href="#deals" style="background:#EE4D2D;color:#fff;border-radius:12px;padding:14px 26px;font-weight:700;font-size:15px;" style-hover="background:#D73211;color:#fff;">Săn deal ngay</a>
+        <a href="#how" style="background:#fff;border:1.5px solid #E5E5E5;border-radius:12px;padding:14px 26px;font-weight:600;font-size:15px;color:#171717;" style-hover="border-color:#171717;">Cashback hoạt động thế nào?</a>
+      </div>
+      <div style="display:flex;gap:28px;font-size:13px;color:#737373;">
+        <div><strong style="display:block;font-family:'Archivo',sans-serif;font-size:20px;color:#171717;">2,1 tỷ đ</strong>đã hoàn cho người dùng</div>
+        <div><strong style="display:block;font-family:'Archivo',sans-serif;font-size:20px;color:#171717;">380k+</strong>người săn deal</div>
+        <div><strong style="display:block;font-family:'Archivo',sans-serif;font-size:20px;color:#171717;">3 sàn</strong>Shopee · TikTok · Lazada</div>
+      </div>
+    </div>
+    <!-- Giá thực trả demo card -->
+    <div style="background:#FFFFFF;border:1.5px solid #ECECEC;border-radius:18px;box-shadow:0 12px 32px rgba(23,23,23,0.07);padding:24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <span style="font-weight:700;font-size:15px;">Bạn thực trả bao nhiêu?</span>
+        <span style="background:#FFF1ED;color:#D73211;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;">🔥 Deal Score 94</span>
+      </div>
+      <div style="display:flex;gap:14px;margin-bottom:18px;">
+        <div style="width:72px;height:72px;border-radius:12px;background:repeating-linear-gradient(45deg,#F5F5F5,#F5F5F5 6px,#ECECEC 6px,#ECECEC 12px);display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:9px;color:#A3A3A3;flex:none;">ảnh SP</div>
+        <div>
+          <div style="font-size:14px;font-weight:600;line-height:1.4;">Tai nghe Bluetooth chống ồn Sony WF-C710N</div>
+          <div style="font-size:12px;color:#737373;margin-top:4px;">Shopee Mall · còn 6 giờ</div>
+        </div>
+      </div>
+      <div style="display:grid;gap:8px;font-size:14px;">
+        <div style="display:flex;justify-content:space-between;color:#737373;"><span>Giá niêm yết</span><span style="text-decoration:line-through;">1.990.000đ</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:#737373;">Giảm giá sàn</span><span style="color:#EE4D2D;font-weight:600;">−400.000đ</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:#737373;">Mã DEALHOAN50</span><span style="color:#EE4D2D;font-weight:600;">−50.000đ</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:#737373;">Hoàn tiền về ví</span><span style="color:#16A34A;font-weight:600;">−77.000đ</span></div>
+        <div style="border-top:1.5px dashed #E5E5E5;margin:4px 0;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:700;">Bạn thực trả</span><span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:24px;letter-spacing:-0.5px;">1.463.000đ</span></div>
+        <div style="display:flex;justify-content:flex-end;font-size:12px;color:#16A34A;font-weight:600;">Tiết kiệm 527.000đ (26%)</div>
+      </div>
+      <button style="width:100%;margin-top:16px;background:#EE4D2D;color:#fff;border:none;border-radius:12px;height:48px;font-family:'Be Vietnam Pro',sans-serif;font-weight:700;font-size:15px;cursor:pointer;" style-hover="background:#D73211;">Mua và nhận hoàn tiền →</button>
+    </div>
+  </div>
+</section>
+
+<!-- Deal hot -->
+<section id="deals" style="max-width:1280px;margin:0 auto;padding:44px 24px 8px;">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;">
+    <h2 style="font-family:'Archivo',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;margin:0;">Deal hot hôm nay</h2>
+    <a href="#" style="font-size:14px;font-weight:600;color:#737373;">Xem tất cả →</a>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+    <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="5">
+      <button onClick="{{ tab.onPick }}" style="border-radius:999px;padding:8px 16px;font-family:'Be Vietnam Pro',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid {{ tab.border }};background:{{ tab.bg }};color:{{ tab.color }};">{{ tab.label }}</button>
+    </sc-for>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+    <sc-for list="{{ deals }}" as="d" hint-placeholder-count="8">
+      <article style="background:#FFFFFF;border:1px solid #ECECEC;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .15s,transform .15s;" style-hover="box-shadow:0 10px 24px rgba(23,23,23,0.08);transform:translateY(-2px);">
+        <div style="position:relative;">
+          <div style="height:160px;background:repeating-linear-gradient(45deg,#F5F5F5,#F5F5F5 8px,#EFEFEF 8px,#EFEFEF 16px);display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:10px;color:#A3A3A3;">{{ d.img }}</div>
+          <span style="position:absolute;top:10px;left:10px;background:#EE4D2D;color:#fff;border-radius:7px;padding:3px 8px;font-size:12px;font-weight:700;">−{{ d.off }}%</span>
+          <span style="position:absolute;top:10px;right:10px;background:rgba(23,23,23,0.85);color:#fff;border-radius:7px;padding:3px 8px;font-size:11px;font-weight:700;">🔥 {{ d.score }}</span>
+          <button onClick="{{ d.onSave }}" title="Lưu deal" style="position:absolute;bottom:10px;right:10px;width:32px;height:32px;border-radius:50%;background:#fff;border:1px solid #ECECEC;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:{{ d.heartColor }};">{{ d.heart }}</button>
+        </div>
+        <div style="padding:14px 14px 16px;display:flex;flex-direction:column;gap:8px;flex:1;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#737373;">
+            <span style="background:#F5F5F5;border-radius:5px;padding:2px 7px;font-weight:600;">{{ d.platform }}</span>
+            <span>{{ d.meta }}</span>
+          </div>
+          <div style="font-size:13.5px;font-weight:600;line-height:1.4;min-height:38px;">{{ d.name }}</div>
+          <div style="display:flex;align-items:baseline;gap:8px;">
+            <span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:19px;letter-spacing:-0.3px;">{{ d.price }}</span>
+            <span style="font-size:12px;color:#A3A3A3;text-decoration:line-through;">{{ d.oldPrice }}</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;">
+            <span style="display:inline-flex;align-items:center;gap:5px;background:#F0FDF4;color:#16A34A;border-radius:8px;padding:5px 9px;font-size:12px;font-weight:700;">₫ Hoàn {{ d.cashback }}</span>
+            <a href="#" style="font-size:12.5px;font-weight:700;color:#EE4D2D;">Mua ngay →</a>
+          </div>
+        </div>
+      </article>
+    </sc-for>
+  </div>
+</section>
+
+<!-- Coupons -->
+<section style="max-width:1280px;margin:0 auto;padding:44px 24px 8px;">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;">
+    <h2 style="font-family:'Archivo',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;margin:0;">Mã giảm giá nổi bật</h2>
+    <a href="#" style="font-size:14px;font-weight:600;color:#737373;">Tất cả mã →</a>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+    <sc-for list="{{ coupons }}" as="c" hint-placeholder-count="3">
+      <div style="background:#FFFFFF;border:1px solid #ECECEC;border-radius:14px;display:flex;overflow:hidden;">
+        <div style="width:88px;background:{{ c.bg }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-right:1.5px dashed #E5E5E5;flex:none;">
+          <span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:20px;color:{{ c.fg }};">{{ c.value }}</span>
+          <span style="font-size:10px;font-weight:700;color:{{ c.fg }};text-transform:uppercase;letter-spacing:0.5px;">{{ c.unit }}</span>
+        </div>
+        <div style="padding:14px 16px;display:flex;flex-direction:column;gap:6px;flex:1;">
+          <div style="font-size:13.5px;font-weight:600;">{{ c.title }}</div>
+          <div style="font-size:12px;color:#737373;">{{ c.cond }}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;gap:8px;">
+            <code style="font-family:monospace;font-size:12px;background:#F7F7F7;border:1px dashed #D4D4D4;border-radius:7px;padding:4px 9px;font-weight:700;">{{ c.code }}</code>
+            <button onClick="{{ c.onCopy }}" style="background:#171717;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-family:'Be Vietnam Pro',sans-serif;font-size:12px;font-weight:600;cursor:pointer;" style-hover="background:#EE4D2D;">{{ c.btnLabel }}</button>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<!-- How it works -->
+<section id="how" style="max-width:1280px;margin:0 auto;padding:44px 24px 8px;">
+  <div style="background:#FFFFFF;border:1px solid #ECECEC;border-radius:18px;padding:36px;">
+    <h2 style="font-family:'Archivo',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;margin:0 0 6px;">Cashback hoạt động thế nào?</h2>
+    <p style="font-size:14px;color:#737373;margin:0 0 28px;">Minh bạch từng bước — tiền hoàn có trạng thái rõ ràng, không cam kết mơ hồ.</p>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;">
+      <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <span style="width:34px;height:34px;border-radius:10px;background:{{ s.bg }};color:{{ s.fg }};display:flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif;font-weight:800;font-size:15px;">{{ s.n }}</span>
+          <div style="font-size:14.5px;font-weight:700;">{{ s.title }}</div>
+          <div style="font-size:13px;color:#737373;line-height:1.55;">{{ s.desc }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<!-- Referral -->
+<section style="max-width:1280px;margin:0 auto;padding:44px 24px;">
+  <div style="background:#171717;border-radius:18px;padding:40px;display:flex;align-items:center;justify-content:space-between;gap:32px;">
+    <div>
+      <h2 style="font-family:'Archivo',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;margin:0 0 8px;color:#fff;">Mời bạn bè, nhận hoa hồng</h2>
+      <p style="font-size:14px;color:#A3A3A3;margin:0;max-width:480px;line-height:1.6;">Nhận 20.000đ khi bạn bè đăng ký và hoàn thành đơn đầu tiên, cộng thêm 5% hoa hồng từ cashback của họ trong 6 tháng.</p>
+    </div>
+    <div style="display:flex;gap:12px;flex:none;">
+      <button onClick="{{ onCopyRef }}" style="background:#fff;color:#171717;border:none;border-radius:12px;padding:14px 24px;font-family:'Be Vietnam Pro',sans-serif;font-weight:700;font-size:14px;cursor:pointer;">{{ refLabel }}</button>
+      <button style="background:transparent;color:#fff;border:1.5px solid #404040;border-radius:12px;padding:14px 24px;font-family:'Be Vietnam Pro',sans-serif;font-weight:600;font-size:14px;cursor:pointer;" style-hover="border-color:#fff;">Chia sẻ Zalo</button>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer style="background:#FFFFFF;border-top:1px solid #ECECEC;">
+  <div style="max-width:1280px;margin:0 auto;padding:36px 24px;display:flex;justify-content:space-between;gap:32px;flex-wrap:wrap;font-size:13px;color:#737373;">
+    <div style="max-width:280px;">
+      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:17px;color:#171717;margin-bottom:8px;">Deal<span style="color:#EE4D2D;">Hoàn</span></div>
+      Nền tảng săn deal & hoàn tiền cho người mua sắm thông minh tại Việt Nam.
+    </div>
+    <div style="display:flex;gap:56px;flex-wrap:wrap;">
+      <div style="display:grid;gap:8px;"><strong style="color:#171717;">Khám phá</strong><a href="#" style="color:#737373;">Deal hot</a><a href="#" style="color:#737373;">Mã giảm giá</a><a href="#" style="color:#737373;">Danh mục</a><a href="#" style="color:#737373;">Thương hiệu</a></div>
+      <div style="display:grid;gap:8px;"><strong style="color:#171717;">Cashback</strong><a href="#" style="color:#737373;">Cách hoạt động</a><a href="#" style="color:#737373;">Chính sách hoàn tiền</a><a href="#" style="color:#737373;">Rút tiền</a><a href="#" style="color:#737373;">FAQ</a></div>
+      <div style="display:grid;gap:8px;"><strong style="color:#171717;">DealHoàn</strong><a href="#" style="color:#737373;">Giới thiệu bạn bè</a><a href="#" style="color:#737373;">Blog</a><a href="#" style="color:#737373;">Liên hệ</a></div>
+    </div>
+  </div>
+  <div style="border-top:1px solid #ECECEC;text-align:center;padding:14px;font-size:12px;color:#A3A3A3;">© 2026 DealHoàn. Cashback ghi nhận qua liên kết tiếp thị của các sàn TMĐT.</div>
+</footer>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#171717;color:#fff;border-radius:12px;padding:12px 20px;font-size:13.5px;font-weight:600;box-shadow:0 12px 32px rgba(0,0,0,0.25);animation:toastIn .2s ease;z-index:100;">{{ toastMsg }}</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showDealScore&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Deal Card&quot;}}">
+class Component extends DCLogic {
+  state = { tab: 0, saved: {}, copied: {}, refCopied: false, toast: false, toastMsg: '' };
+  showToast(msg) {
+    clearTimeout(this._t);
+    this.setState({ toast: true, toastMsg: msg });
+    this._t = setTimeout(() => this.setState({ toast: false }), 2200);
+  }
+  renderVals() {
+    const showScore = this.props.showDealScore ?? true;
+    const tabLabels = ['Tất cả', 'Cashback cao', 'Giảm sâu', 'Sắp hết hạn', 'Đang được săn'];
+    const tabs = tabLabels.map((label, i) => {
+      const on = this.state.tab === i;
+      return { label,
+        bg: on ? '#171717' : '#FFFFFF', color: on ? '#FFFFFF' : '#525252',
+        border: on ? '#171717' : '#E5E5E5',
+        onPick: () => this.setState({ tab: i }) };
+    });
+    const raw = [
+      { name: 'Robot hút bụi lau nhà Xiaomi S20+', platform: 'Shopee Mall', meta: 'còn 3 giờ', price: '3.290.000đ', oldPrice: '4.990.000đ', off: 34, score: 96, cashback: '164.000đ', img: 'ảnh: robot hút bụi' },
+      { name: 'Nồi chiên không dầu Philips 6.2L NA221', platform: 'Lazada', meta: '1,2k đã săn', price: '1.890.000đ', oldPrice: '2.790.000đ', off: 32, score: 91, cashback: '94.000đ', img: 'ảnh: nồi chiên' },
+      { name: 'Serum B5 phục hồi da La Roche-Posay 30ml', platform: 'TikTok Shop', meta: 'giá thấp 30 ngày', price: '312.000đ', oldPrice: '450.000đ', off: 31, score: 89, cashback: '31.000đ', img: 'ảnh: serum' },
+      { name: 'Giày chạy bộ Nike Revolution 7 chính hãng', platform: 'Shopee', meta: '860 đã săn', price: '1.190.000đ', oldPrice: '1.720.000đ', off: 31, score: 87, cashback: '59.000đ', img: 'ảnh: giày chạy bộ' },
+      { name: 'Máy xay sinh tố Sunhouse 1.5L 700W', platform: 'Shopee', meta: 'còn 8 giờ', price: '429.000đ', oldPrice: '690.000đ', off: 38, score: 90, cashback: '21.000đ', img: 'ảnh: máy xay' },
+      { name: 'Bàn phím cơ Keychron K8 Pro hotswap', platform: 'Lazada', meta: 'giảm sâu nhất tuần', price: '1.990.000đ', oldPrice: '2.850.000đ', off: 30, score: 88, cashback: '99.000đ', img: 'ảnh: bàn phím cơ' },
+      { name: 'Nước giặt Omo Matic túi 3.6kg x2', platform: 'TikTok Shop', meta: '2,4k đã săn', price: '215.000đ', oldPrice: '318.000đ', off: 32, score: 85, cashback: '17.000đ', img: 'ảnh: nước giặt' },
+      { name: 'Ghế công thái học Sihoo M57 lưng lưới', platform: 'Shopee Mall', meta: 'còn 12 giờ', price: '2.590.000đ', oldPrice: '3.990.000đ', off: 35, score: 93, cashback: '129.000đ', img: 'ảnh: ghế công thái học' },
+    ];
+    const deals = raw.map((d, i) => ({ ...d,
+      score: showScore ? d.score : '',
+      heart: this.state.saved[i] ? '♥' : '♡',
+      heartColor: this.state.saved[i] ? '#EE4D2D' : '#737373',
+      onSave: () => {
+        const saved = { ...this.state.saved, [i]: !this.state.saved[i] };
+        this.setState({ saved });
+        this.showToast(saved[i] ? 'Đã lưu deal — sẽ báo khi giảm thêm' : 'Đã bỏ lưu deal');
+      } }));
+    const rawCoupons = [
+      { value: '50k', unit: 'giảm', title: 'Shopee — đơn điện tử từ 500k', cond: 'HSD 31/08 · áp cùng cashback', code: 'DEALHOAN50', bg: '#FFF1ED', fg: '#D73211' },
+      { value: '8%', unit: 'tối đa 100k', title: 'TikTok Shop — toàn sàn', cond: 'HSD 28/08 · đơn từ 250k', code: 'TIKDH8', bg: '#F5F5F5', fg: '#171717' },
+      { value: '15%', unit: 'hoàn thêm', title: 'Lazada — làm đẹp & mẹ bé', cond: 'Cuối tuần này · không giới hạn', code: 'LZDHOAN15', bg: '#F0FDF4', fg: '#16A34A' },
+    ];
+    const coupons = rawCoupons.map((c, i) => ({ ...c,
+      btnLabel: this.state.copied[i] ? '✓ Đã copy' : 'Copy mã',
+      onCopy: () => {
+        try { navigator.clipboard.writeText(c.code); } catch (e) {}
+        this.setState({ copied: { ...this.state.copied, [i]: true } });
+        this.showToast('Đã copy mã ' + c.code + ' — dán khi thanh toán');
+        setTimeout(() => this.setState({ copied: { ...this.state.copied, [i]: false } }), 2500);
+      } }));
+    const steps = [
+      { n: '1', title: 'Tìm deal trên DealHoàn', desc: 'Chọn deal đã được tính sẵn giá thực trả sau mã và cashback.', bg: '#FFF1ED', fg: '#D73211' },
+      { n: '2', title: 'Mua qua liên kết', desc: 'Bấm "Mua và nhận hoàn tiền" — bạn mua trực tiếp trên sàn như bình thường.', bg: '#FFF1ED', fg: '#D73211' },
+      { n: '3', title: 'Cashback chờ duyệt', desc: 'Đơn ghi nhận trong 24 giờ, trạng thái "chờ duyệt" đến khi hết hạn đổi trả.', bg: '#F5F5F5', fg: '#171717' },
+      { n: '4', title: 'Rút tiền về tài khoản', desc: 'Cashback được duyệt vào ví, rút về ngân hàng hoặc Momo từ 50.000đ.', bg: '#F0FDF4', fg: '#16A34A' },
+    ];
+    return { tabs, deals, coupons, steps,
+      toast: this.state.toast, toastMsg: this.state.toastMsg,
+      refLabel: this.state.refCopied ? '✓ Đã copy link' : 'Copy link giới thiệu',
+      onCopyRef: () => {
+        try { navigator.clipboard.writeText('https://dealhoan.vn/ref/BAN2026'); } catch (e) {}
+        this.setState({ refCopied: true });
+        this.showToast('Đã copy link giới thiệu của bạn');
+        setTimeout(() => this.setState({ refCopied: false }), 2500);
+      } };
+  }
+}
+</script>
+</body>
+</html>
