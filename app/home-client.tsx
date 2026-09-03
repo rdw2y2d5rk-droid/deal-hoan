@@ -253,6 +253,7 @@ export default function HomeClient({
 }) {
   const linkInputRef = useRef<HTMLInputElement>(null);
   const flashScrollRef = useRef<HTMLDivElement>(null);
+  const isFlashHoveredRef = useRef(false);
   const [link, setLink] = useState("");
   const [result, setResult] = useState("");
   const [resultClosing, setResultClosing] = useState(false);
@@ -285,6 +286,7 @@ export default function HomeClient({
   }, [flashEndTime]);
   useEffect(() => {
     const timer = setInterval(() => {
+      if (isFlashHoveredRef.current) return;
       const el = flashScrollRef.current;
       if (!el) return;
       const max = el.scrollWidth - el.clientWidth;
@@ -705,7 +707,22 @@ export default function HomeClient({
             </div>
             <a>Xem tất cả →</a>
           </div>
-          <div className="flash-scroll" ref={flashScrollRef}>
+          <div
+            className="flash-scroll"
+            ref={flashScrollRef}
+            onMouseEnter={() => {
+              isFlashHoveredRef.current = true;
+            }}
+            onMouseLeave={() => {
+              isFlashHoveredRef.current = false;
+            }}
+            onTouchStart={() => {
+              isFlashHoveredRef.current = true;
+            }}
+            onTouchEnd={() => {
+              isFlashHoveredRef.current = false;
+            }}
+          >
             <div className="flash-grid">
               {flashDeals.map((deal) => (
                 <article key={deal.id}>
