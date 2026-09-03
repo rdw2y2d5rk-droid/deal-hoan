@@ -10,6 +10,7 @@
     "shopee:login": "node scripts/shopee-login.mjs",
     "shopee:login:attach": "node scripts/shopee-login-attach.mjs",
     "shopee:scrape": "node scripts/shopee-scrape.mjs",
+    "shopee:flash-sale": "node scripts/shopee-scrape-flashsale.mjs",
     "shopee:schedule": "bash scripts/schedule-shopee-scrape.sh"
   },
   "dependencies": {

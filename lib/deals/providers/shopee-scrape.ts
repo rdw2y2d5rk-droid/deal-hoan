@@ -2,6 +2,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { cashbackFor, dealScore } from "../score";
 import type { Deal, DealProvider } from "../types";
+import { hasSupabaseConfig, supabasePublishableKey, supabaseUrl } from "@/lib/supabase/config";
+import { createClient } from "@supabase/supabase-js";
 
 /**
  * Reads the output of `scripts/shopee-scrape.mjs` — a Playwright scraper that
@@ -77,7 +79,61 @@ function normalise(p: ScrapedProduct): Deal | null {
   };
 }
 
+const FLASH_SALE_CACHE_PATH = path.join(process.cwd(), "lib/deals/cache/shopee-flash-sale.json");
+
+async function readFromSupabase() {
+  if (!hasSupabaseConfig || !supabaseUrl || !supabasePublishableKey) return null;
+  try {
+    const sb = createClient(supabaseUrl, supabasePublishableKey);
+    const { data, error } = await sb.from("flash_sale_cache").select("data").eq("id", "latest").single();
+    if (error || !data) return null;
+    return data.data;
+  } catch {
+    return null;
+  }
+}
+
 async function readCache(): Promise<CacheFile | null> {
+  // 1. Ưu tiên đọc từ Supabase Cloud (khi deploy trên Vercel)
+  let flashData = await readFromSupabase();
+
+  // 2. Nếu không có Supabase, đọc từ file local
+  if (!flashData) {
+    try {
+      const rawFlash = await readFile(FLASH_SALE_CACHE_PATH, "utf-8");
+      flashData = JSON.parse(rawFlash);
+    } catch {}
+  }
+
+  if (flashData?.sessions?.length) {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const activeSession =
+      flashData.sessions.find(
+        (s: { startTime: number; endTime: number }) => nowSec >= s.startTime && nowSec < s.endTime
+      ) || flashData.sessions[0];
+
+    if (activeSession?.items?.length) {
+      return {
+        scrapedAt: flashData.scrapedAt,
+        products: activeSession.items.map((it: ScrapedProduct & { discountPercent?: number }) => ({
+          itemId: it.itemId,
+          shopId: it.shopId,
+          name: it.name,
+          price: it.price,
+          priceBeforeDiscount: it.priceBeforeDiscount,
+          rawDiscount: it.rawDiscount ?? it.discountPercent ?? 0,
+          historicalSold: it.historicalSold ?? null,
+          ratingStar: it.ratingStar ?? 5,
+          ratingCount: it.ratingCount ?? 100,
+          image: it.image,
+          isMall: it.isMall,
+          productUrl: it.productUrl,
+        })),
+      };
+    }
+  }
+
+  // 2. Fallback sang file cache chung
   try {
     const raw = await readFile(CACHE_PATH, "utf-8");
     return JSON.parse(raw) as CacheFile;
@@ -89,16 +145,13 @@ async function readCache(): Promise<CacheFile | null> {
 export const shopeeScrapeProvider: DealProvider = {
   id: "shopee-scrape",
 
-  // Cheap sync-ish check isn't possible for an async file read, so this
-  // always reports true and `fetchDeals` throws (skipping the provider) when
-  // the cache is missing or stale — the orchestrator treats that the same way.
   isConfigured: () => true,
 
   async fetchDeals() {
     const cache = await readCache();
     if (!cache) {
       throw new Error(
-        "No scraped Shopee data — run: node scripts/shopee-login.mjs && node scripts/shopee-scrape.mjs",
+        "No scraped Shopee data — run: npm run shopee:flash-sale",
       );
     }
 

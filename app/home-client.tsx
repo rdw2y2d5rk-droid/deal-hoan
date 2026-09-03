@@ -65,6 +65,18 @@ const coupons = [
     "green",
   ],
 ];
+
+function LazadaLogo({ color = "#0F4C81" }: { color?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 20.2C6.8 16 4.4 13.2 4.4 10.2A4 4 0 0 1 12 8.4a4 4 0 0 1 7.6 1.8c0 3-2.4 5.8-7.6 10Z"
+        fill={color}
+      />
+    </svg>
+  );
+}
+
 function Receipt({
   platform = "Shopee Mall",
   trackedLink,
@@ -525,7 +537,7 @@ export default function HomeClient({
             </div>
           )}
           <div className="chips">
-            Hỗ trợ:{" "}
+            <span className="chips-label">Hỗ trợ:</span>
             <button onClick={() => setLink("https://shopee.vn/tai-nghe-sony")}>
               <svg viewBox="0 0 24 24" fill="none">
                 <path
@@ -557,12 +569,7 @@ export default function HomeClient({
               TikTok Shop
             </button>
             <button onClick={() => setLink("https://lazada.vn/products/sony")}>
-              <svg viewBox="0 0 24 24">
-                <path
-                  d="M12 20.2C6.8 16 4.4 13.2 4.4 10.2A4 4 0 0 1 12 8.4a4 4 0 0 1 7.6 1.8c0 3-2.4 5.8-7.6 10z"
-                  fill="#0F4C81"
-                />
-              </svg>
+              <LazadaLogo />
               Lazada
             </button>
           </div>
@@ -631,7 +638,7 @@ export default function HomeClient({
                     />
                   </svg>
                 )}
-                {i === 2 && <span className="sr-only">Lazada</span>}
+                {i === 2 && <LazadaLogo />}
               </i>
               <span>
                 <b>{p[0]}</b>

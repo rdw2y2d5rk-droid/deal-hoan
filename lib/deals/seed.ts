@@ -19,7 +19,7 @@ export const SEED_FLASH: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -35,7 +35,7 @@ export const SEED_FLASH: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -51,7 +51,7 @@ export const SEED_FLASH: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -67,7 +67,7 @@ export const SEED_FLASH: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -83,7 +83,7 @@ export const SEED_FLASH: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1527814050087-3793815479db?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -99,7 +99,7 @@ export const SEED_FLASH: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1526401485004-2fda9f6e0f00?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -115,7 +115,7 @@ export const SEED_FLASH: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -131,7 +131,7 @@ export const SEED_FLASH: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -147,7 +147,7 @@ export const SEED_FLASH: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -163,7 +163,7 @@ export const SEED_FLASH: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   }
 ];
@@ -182,7 +182,7 @@ export const SEED_HOT: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -198,7 +198,7 @@ export const SEED_HOT: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1585515656973-1e99ddca7f45?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -214,7 +214,7 @@ export const SEED_HOT: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -230,7 +230,7 @@ export const SEED_HOT: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -246,7 +246,7 @@ export const SEED_HOT: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1570222094114-d054a817e56b?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -262,7 +262,7 @@ export const SEED_HOT: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -278,7 +278,7 @@ export const SEED_HOT: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   },
   {
@@ -294,7 +294,7 @@ export const SEED_HOT: Deal[] = [
     "sold": null,
     "ratingAverage": 0,
     "reviewCount": 0,
-    "imageUrl": null,
+    "imageUrl": "https://images.unsplash.com/photo-1505843490701-5b8ec60cf9c4?auto=format&fit=crop&w=800&q=80",
     "productUrl": "#"
   }
 ];
