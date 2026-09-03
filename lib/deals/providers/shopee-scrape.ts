@@ -112,10 +112,36 @@ async function readCache(): Promise<CacheFile | null> {
         (s: { startTime: number; endTime: number }) => nowSec >= s.startTime && nowSec < s.endTime
       ) || flashData.sessions[0];
 
+    const allItems: (ScrapedProduct & { discountPercent?: number; rawDiscount?: number })[] = [];
+    const seen = new Set<string>();
+
+    // 1. Đưa sản phẩm phiên hiện tại lên trước để pickFlash ưu tiên
     if (activeSession?.items?.length) {
+      for (const it of activeSession.items) {
+        const key = `${it.shopId}-${it.itemId}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          allItems.push(it);
+        }
+      }
+    }
+
+    // 2. Nạp thêm sản phẩm từ TẤT CẢ các khung giờ khác trong ngày để cấp đủ data cho "Deal hot hôm nay"
+    for (const session of flashData.sessions) {
+      if (!session.items?.length) continue;
+      for (const it of session.items) {
+        const key = `${it.shopId}-${it.itemId}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          allItems.push(it);
+        }
+      }
+    }
+
+    if (allItems.length > 0) {
       return {
         scrapedAt: flashData.scrapedAt,
-        products: activeSession.items.map((it: ScrapedProduct & { discountPercent?: number }) => ({
+        products: allItems.map((it) => ({
           itemId: it.itemId,
           shopId: it.shopId,
           name: it.name,

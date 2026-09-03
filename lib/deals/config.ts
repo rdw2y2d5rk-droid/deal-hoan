@@ -23,7 +23,7 @@ export const CASHBACK_CAP = 500_000;
 
 /** How many cards each section renders. */
 export const FLASH_COUNT = 10;
-export const HOT_COUNT = 8;
+export const HOT_COUNT = 24;
 
 /** Cache lifetime for a fetched bundle, in seconds. */
 export const REVALIDATE_SECONDS = 900;
