@@ -222,14 +222,34 @@ function DemoReceipt({ onBuy }: { onBuy: () => void }) {
     </div>
   );
 }
+function getNextShopeeSlotEndMs(): number {
+  const now = new Date();
+  const vnTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+  const vnHour = vnTime.getHours();
+
+  // Các mốc chuyển khung giờ Flash Sale của Shopee: 2, 9, 12, 15, 17, 21, 24 (0h)
+  const slotHours = [2, 9, 12, 15, 17, 21, 24];
+  const nextHour = slotHours.find((h) => h > vnHour) ?? 24;
+
+  const target = new Date(vnTime);
+  target.setHours(nextHour, 0, 0, 0);
+
+  const diffMs = target.getTime() - vnTime.getTime();
+  return Date.now() + diffMs;
+}
+
 export default function HomeClient({
   flashDeals,
   hotDeals,
   source,
+  flashEndTime,
+  flashSlot,
 }: {
   flashDeals: Deal[];
   hotDeals: Deal[];
   source: DealBundle["source"];
+  flashEndTime?: number;
+  flashSlot?: string;
 }) {
   const linkInputRef = useRef<HTMLInputElement>(null);
   const flashScrollRef = useRef<HTMLDivElement>(null);
@@ -239,7 +259,11 @@ export default function HomeClient({
   const [saved, setSaved] = useState<number[]>([]);
   const [tab, setTab] = useState(0);
   const [toast, setToast] = useState("");
-  const [seconds, setSeconds] = useState(8049);
+
+  const [seconds, setSeconds] = useState(() => {
+    const endMs = flashEndTime || getNextShopeeSlotEndMs();
+    return Math.max(0, Math.floor((endMs - Date.now()) / 1000));
+  });
   const [busy, setBusy] = useState(false);
   const [inputError, setInputError] = useState(false);
   const [refCopied, setRefCopied] = useState(false);
@@ -249,10 +273,16 @@ export default function HomeClient({
   const [buyDontShow, setBuyDontShow] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [authPending, setAuthPending] = useState(false);
+
   useEffect(() => {
-    const t = setInterval(() => setSeconds((s) => (s ? s - 1 : 7200)), 1000);
+    const tick = () => {
+      const endMs = flashEndTime || getNextShopeeSlotEndMs();
+      setSeconds(Math.max(0, Math.floor((endMs - Date.now()) / 1000)));
+    };
+    tick();
+    const t = setInterval(tick, 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [flashEndTime]);
   useEffect(() => {
     const timer = setInterval(() => {
       const el = flashScrollRef.current;
@@ -652,7 +682,22 @@ export default function HomeClient({
       <section className="container flash-section">
         <div className="flash">
           <div className="flash-top">
-            <h2>⚡ Deal chớp nhoáng</h2>
+            <h2>
+              ⚡ Deal chớp nhoáng
+              {flashSlot && (
+                <span
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    marginLeft: "8px",
+                    opacity: 0.85,
+                    verticalAlign: "middle",
+                  }}
+                >
+                  ({flashSlot})
+                </span>
+              )}
+            </h2>
             <div className="timer">
               {tm.map((t, i) => (
                 <span key={i}>{t}</span>

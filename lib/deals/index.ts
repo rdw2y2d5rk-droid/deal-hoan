@@ -87,3 +87,5 @@ export const getDeals = unstable_cache(fetchBundle, ["deals-bundle"], {
   revalidate: REVALIDATE_SECONDS,
   tags: ["deals"],
 });
+
+export { getActiveFlashSaleSession } from "./providers/shopee-scrape";

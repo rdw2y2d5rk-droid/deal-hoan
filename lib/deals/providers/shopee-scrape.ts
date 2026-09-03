@@ -166,3 +166,36 @@ export const shopeeScrapeProvider: DealProvider = {
     return deals;
   },
 };
+
+export async function getActiveFlashSaleSession(): Promise<{
+  timeSlot: string;
+  startTime: number;
+  endTime: number;
+  isOngoing: boolean;
+} | null> {
+  let flashData = await readFromSupabase();
+  if (!flashData) {
+    try {
+      const rawFlash = await readFile(FLASH_SALE_CACHE_PATH, "utf-8");
+      flashData = JSON.parse(rawFlash);
+    } catch {}
+  }
+
+  if (flashData?.sessions?.length) {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const activeSession =
+      flashData.sessions.find(
+        (s: { startTime: number; endTime: number }) => nowSec >= s.startTime && nowSec < s.endTime
+      ) || flashData.sessions[0];
+
+    if (activeSession) {
+      return {
+        timeSlot: activeSession.timeSlot,
+        startTime: activeSession.startTime,
+        endTime: activeSession.endTime,
+        isOngoing: nowSec >= activeSession.startTime && nowSec < activeSession.endTime,
+      };
+    }
+  }
+  return null;
+}
