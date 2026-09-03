@@ -727,14 +727,22 @@ export default function HomeClient({
               {flashDeals.map((deal) => (
                 <article key={deal.id}>
                   <div className="placeholder">
-                    {deal.imageUrl ? (
-                      // Scraped deal images come from unpredictable CDN hosts, so
-                      // next/image's static host allowlist doesn't fit here.
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={deal.imageUrl} alt={deal.name} className="deal-image" loading="lazy" />
-                    ) : (
-                      "ảnh sản phẩm"
-                    )}
+                    <a
+                      href={deal.productUrl}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                      className="deal-image-link"
+                      aria-label={deal.name}
+                    >
+                      {deal.imageUrl ? (
+                        // Scraped deal images come from unpredictable CDN hosts, so
+                        // next/image's static host allowlist doesn't fit here.
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={deal.imageUrl} alt={deal.name} className="deal-image" loading="lazy" />
+                      ) : (
+                        "ảnh sản phẩm"
+                      )}
+                    </a>
                     <b>−{deal.discountPercent}%</b>
                   </div>
                   <strong>
@@ -789,12 +797,20 @@ export default function HomeClient({
           {visibleHotDeals.map((deal, i) => (
             <article className="deal" key={deal.id}>
               <div className="placeholder">
-                {deal.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- see flash-grid note above
-                  <img src={deal.imageUrl} alt={deal.name} className="deal-image" loading="lazy" />
-                ) : (
-                  "ảnh sản phẩm"
-                )}
+                <a
+                  href={deal.productUrl}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="deal-image-link"
+                  aria-label={deal.name}
+                >
+                  {deal.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- see flash-grid note above
+                    <img src={deal.imageUrl} alt={deal.name} className="deal-image" loading="lazy" />
+                  ) : (
+                    "ảnh sản phẩm"
+                  )}
+                </a>
                 <b>−{deal.discountPercent}%</b>
                 <span>🔥 {deal.dealScore}</span>
                 <button
@@ -823,7 +839,15 @@ export default function HomeClient({
                     ? ` · đã bán ${formatSold(deal.sold)}`
                     : ""}
                 </small>
-                <strong>{deal.name}</strong>
+                <strong>
+                  <a
+                    href={deal.productUrl}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                  >
+                    {deal.name}
+                  </a>
+                </strong>
                 <div>
                   <em>{formatPrice(deal.price)}</em>
                   {deal.originalPrice > deal.price && (

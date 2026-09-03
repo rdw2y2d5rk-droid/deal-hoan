@@ -538,6 +538,19 @@ h2,
   object-fit: cover;
   object-position: center;
   background: #fff;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.deal-image-link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+  cursor: pointer;
+  z-index: 1;
+}
+.deal-image-link:hover .deal-image {
+  opacity: 0.95;
+  transform: scale(1.02);
 }
 .placeholder.small {
   width: 62px;
@@ -1237,6 +1250,8 @@ h2,
   background: #ee4d2d;
   color: #fff;
   font: 800 11px "Be Vietnam Pro";
+  z-index: 2;
+  pointer-events: none;
 }
 .flash-grid em,
 .deal em {
@@ -1328,6 +1343,8 @@ h2,
   background: #171717dc;
   color: #fff;
   font: 700 11px "Be Vietnam Pro";
+  z-index: 2;
+  pointer-events: none;
 }
 .deal .placeholder button {
   position: absolute;
@@ -1339,6 +1356,8 @@ h2,
   border-radius: 50%;
   background: #fff;
   color: #ee4d2d;
+  z-index: 3;
+  cursor: pointer;
 }
 .deal-body {
   display: grid;
@@ -1364,6 +1383,21 @@ h2,
   min-height: 38px;
   font-size: 13.5px;
   line-height: 1.4;
+}
+.deal-body > strong a,
+.flash-grid article > strong a {
+  color: inherit;
+  text-decoration: none;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  transition: color 0.15s ease;
+  cursor: pointer;
+}
+.deal-body > strong a:hover,
+.flash-grid article > strong a:hover {
+  color: #ee4d2d;
 }
 .deal-body footer {
   display: flex;
