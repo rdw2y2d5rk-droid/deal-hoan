@@ -90,3 +90,6 @@ export const getDeals = unstable_cache(fetchBundle, ["deals-bundle"], {
 });
 
 export { getActiveFlashSaleSession } from "./providers/shopee-scrape";
+export { getVouchers, getDailyShopeeCoupons } from "./vouchers";
+export type { Coupon, CouponCategory } from "./types";
+

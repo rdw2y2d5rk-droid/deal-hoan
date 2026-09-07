@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { formatPrice, formatSold } from "@/lib/deals/format";
-import type { Deal, DealBundle } from "@/lib/deals/types";
+import type { Deal, DealBundle, Coupon, CouponCategory } from "@/lib/deals";
+import { getDailyShopeeCoupons } from "@/lib/deals";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 /**
  * Tabs over "Deal hot hôm nay". Every sort is backed by a field the marketplace
@@ -39,31 +40,12 @@ const HOT_SORTERS: ((a: Deal, b: Deal) => number)[] = [
   (a, b) => (b.sold ?? 0) - (a.sold ?? 0),
 ];
 
-const coupons = [
-  [
-    "50k",
-    "giảm",
-    "Shopee — đơn điện tử từ 500k",
-    "HSD 31/08 · áp cùng cashback",
-    "DEALHOAN50",
-    "orange",
-  ],
-  [
-    "8%",
-    "tối đa 100k",
-    "TikTok Shop — toàn sàn",
-    "HSD 28/08 · đơn từ 250k",
-    "TIKDH8",
-    "black",
-  ],
-  [
-    "15%",
-    "hoàn thêm",
-    "Lazada — làm đẹp & mẹ bé",
-    "Cuối tuần này · không giới hạn",
-    "LZDHOAN15",
-    "green",
-  ],
+const COUPON_TABS: { key: CouponCategory; label: string }[] = [
+  { key: "all", label: "Tất cả" },
+  { key: "toan_san", label: "Toàn sàn" },
+  { key: "freeship", label: "Freeship" },
+  { key: "mall", label: "Shopee Mall" },
+  { key: "live", label: "Shopee Live" },
 ];
 
 function LazadaLogo({ color = "#0F4C81" }: { color?: string }) {
@@ -241,12 +223,14 @@ function getNextShopeeSlotEndMs(): number {
 export default function HomeClient({
   flashDeals,
   hotDeals,
+  vouchers: initialVouchers,
   source,
   flashEndTime,
   flashSlot,
 }: {
   flashDeals: Deal[];
   hotDeals: Deal[];
+  vouchers?: Coupon[];
   source: DealBundle["source"];
   flashEndTime?: number;
   flashSlot?: string;
@@ -259,10 +243,22 @@ export default function HomeClient({
   const [resultClosing, setResultClosing] = useState(false);
   const [saved, setSaved] = useState<number[]>([]);
   const [tab, setTab] = useState(0);
+  const [couponTab, setCouponTab] = useState<CouponCategory>("all");
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [toast, setToast] = useState("");
+
+  const allCoupons =
+    initialVouchers && initialVouchers.length > 0
+      ? initialVouchers
+      : getDailyShopeeCoupons();
+  const displayedCoupons =
+    couponTab === "all"
+      ? allCoupons
+      : allCoupons.filter((c) => c.category === couponTab);
 
   const [seconds, setSeconds] = useState(() => {
     const endMs = flashEndTime && flashEndTime > Date.now() ? flashEndTime : getNextShopeeSlotEndMs();
+
     return Math.max(0, Math.floor((endMs - Date.now()) / 1000));
   });
   const [busy, setBusy] = useState(false);
@@ -851,28 +847,52 @@ export default function HomeClient({
       </section>
       <section className="container block" id="coupons">
         <div className="heading">
-          <h2>Mã giảm giá nổi bật</h2>
-          <a>Tất cả mã →</a>
+          <div>
+            <h2>Mã giảm giá nổi bật</h2>
+            <p className="deal-source">
+              Mã giảm giá Shopee hôm nay — tự động cập nhật và áp cùng cashback hoàn tiền.
+            </p>
+          </div>
+          <a
+            href="https://shopee.vn/m/ma-giam-gia"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+          >
+            Tất cả mã Shopee →
+          </a>
+        </div>
+        <div className="tabs" style={{ marginBottom: "18px" }}>
+          {COUPON_TABS.map((t) => (
+            <button
+              key={t.key}
+              className={couponTab === t.key ? "selected" : ""}
+              onClick={() => setCouponTab(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
         <div className="coupon-grid">
-          {coupons.map((c) => (
-            <article className={"coupon " + c[5]} key={c[4]}>
+          {displayedCoupons.map((c) => (
+            <article className={"coupon " + c.color} key={c.id}>
               <div>
-                <b>{c[0]}</b>
-                <small>{c[1]}</small>
+                <b>{c.amount}</b>
+                <small>{c.unit}</small>
               </div>
               <section>
-                <strong>{c[2]}</strong>
-                <p>{c[3]}</p>
+                <strong>{c.title}</strong>
+                <p>{c.condition}</p>
                 <footer>
-                  <code>{c[4]}</code>
+                  <code>{c.code}</code>
                   <button
                     onClick={() => {
-                      navigator.clipboard?.writeText(c[4]);
-                      notify("Đã copy mã " + c[4] + " — dán khi thanh toán");
+                      navigator.clipboard?.writeText(c.code);
+                      setCopiedCode(c.code);
+                      notify("Đã copy mã " + c.code + " — dán khi thanh toán trên Shopee");
+                      setTimeout(() => setCopiedCode(null), 2500);
                     }}
                   >
-                    Copy mã
+                    {copiedCode === c.code ? "✓ Đã copy" : "Copy mã"}
                   </button>
                 </footer>
               </section>

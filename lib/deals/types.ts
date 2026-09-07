@@ -41,3 +41,19 @@ export interface DealProvider {
   isConfigured(): boolean;
   fetchDeals(): Promise<Deal[]>;
 }
+
+export type CouponCategory = "all" | "toan_san" | "freeship" | "mall" | "live";
+
+export type Coupon = {
+  id: string;
+  amount: string;
+  unit: string;
+  title: string;
+  condition: string;
+  code: string;
+  color: "orange" | "black" | "green" | "blue";
+  category: CouponCategory;
+  platform?: Platform;
+  url?: string;
+};
+
