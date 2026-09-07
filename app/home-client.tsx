@@ -8,7 +8,7 @@ import type { Deal, DealBundle, Coupon, CouponCategory, Platform } from "@/lib/d
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { buildShopeeAffiliateUrl, isShopeeUrl } from "@/lib/deals/affiliate";
 import { cashbackFor } from "@/lib/deals/score";
-import { resolveProductLocally, matchProductFromCatalog, type CalculatedProduct } from "@/lib/deals/resolve";
+import { resolveProductLocally, matchProductFromCatalog, SAMPLE_CHIP_PRODUCTS, type CalculatedProduct } from "@/lib/deals/resolve";
 
 /**
  * Tabs over "Deal hot hôm nay". Every sort is backed by a field the marketplace
@@ -405,55 +405,64 @@ export default function HomeClient({
 
     const subId = user ? `u_${user.id.slice(0, 8)}` : "calc";
 
-    // 1. Check if the link matches an exact sample chip or known exact deal
-    const allAvailableDeals = [...hotDeals, ...flashDeals];
-    const exactMatch = matchProductFromCatalog(trimmed, allAvailableDeals);
-
-    // If it is an exact catalog deal / sample chip (like tai-nghe-sony), display immediately
-    if (exactMatch) {
+    // 1. If it is a sample chip demo (e.g. clicked chip buttons), display immediately
+    if (SAMPLE_CHIP_PRODUCTS[trimmed]) {
+      const chipProduct = SAMPLE_CHIP_PRODUCTS[trimmed];
       const localTracked = isShopeeUrl(trimmed)
         ? buildShopeeAffiliateUrl(trimmed, { subId })
         : trimmed;
-      setCalculatedProduct(exactMatch);
-      setResult(exactMatch.platform);
+      setCalculatedProduct(chipProduct);
       setTrackedLink(localTracked);
       setCopiedTracked(false);
       setResultClosing(false);
+      setResult(chipProduct.platform);
+      setBusy(false);
+      notify("Đã tính xong — đã gắn mã hoàn tiền 100% DealHoàn");
+      return;
     }
 
-    // 2. Fetch live OpenGraph metadata / shortlink resolution from API
+    // 2. For pasted/entered links: reset previous receipt so no stale/old price is shown
+    if (result) {
+      setResult("");
+      setCalculatedProduct(null);
+    }
+
+    // 3. Wait until server returns ALL real data before dropping down receipt
+    const allAvailableDeals = [...hotDeals, ...flashDeals];
     try {
       const res = await fetch("/api/deals/resolve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: trimmed, subId }),
-        signal: AbortSignal.timeout(5500),
+        signal: AbortSignal.timeout(6000),
       });
       if (res.ok) {
         const data = await res.json();
         if (data.product) {
+          // Set full data first
           setCalculatedProduct(data.product);
-          setResult(data.product.platform);
           if (data.trackedLink) {
             setTrackedLink(data.trackedLink);
           }
           setCopiedTracked(false);
           setResultClosing(false);
+          // ONLY drop down the receipt after all data is completely ready
+          setResult(data.product.platform);
         }
+      } else {
+        throw new Error("Server resolve failed");
       }
     } catch {
-      // Fallback to local heuristic only if API fails and we didn't already have an exact match
-      if (!exactMatch) {
-        const localProduct = resolveProductLocally(trimmed, allAvailableDeals);
-        const localTracked = isShopeeUrl(trimmed)
-          ? buildShopeeAffiliateUrl(trimmed, { subId })
-          : trimmed;
-        setCalculatedProduct(localProduct);
-        setResult(localProduct.platform);
-        setTrackedLink(localTracked);
-        setCopiedTracked(false);
-        setResultClosing(false);
-      }
+      // Fallback only if server request completely fails
+      const localProduct = resolveProductLocally(trimmed, allAvailableDeals);
+      const localTracked = isShopeeUrl(trimmed)
+        ? buildShopeeAffiliateUrl(trimmed, { subId })
+        : trimmed;
+      setCalculatedProduct(localProduct);
+      setTrackedLink(localTracked);
+      setCopiedTracked(false);
+      setResultClosing(false);
+      setResult(localProduct.platform);
     } finally {
       setBusy(false);
       notify("Đã tính xong — đã gắn mã hoàn tiền 100% DealHoàn");
