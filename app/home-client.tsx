@@ -6,7 +6,7 @@ import type { User } from "@supabase/supabase-js";
 import { formatPrice, formatSold } from "@/lib/deals/format";
 import type { Deal, DealBundle, Coupon, CouponCategory, Platform } from "@/lib/deals/types";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { buildShopeeAffiliateUrl, isShopeeUrl } from "@/lib/deals/affiliate";
+import { buildShopeeAffiliateUrl, isShopeeUrl, buildCustomShortUrl } from "@/lib/deals/affiliate";
 import { cashbackFor } from "@/lib/deals/score";
 import { resolveProductLocally, matchProductFromCatalog, SAMPLE_CHIP_PRODUCTS, type CalculatedProduct } from "@/lib/deals/resolve";
 
@@ -152,7 +152,15 @@ function Receipt({
         <div className="tracked-link">
           <span>
             <small>Link mới</small>
-            <b>{trackedLink}</b>
+            <a
+              href={trackedLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="tracked-url"
+              title="Nhấp để mở link hoặc bấm Copy link"
+            >
+              <b>{trackedLink}</b>
+            </a>
           </span>
           <button className={copied ? "is-copied" : ""} onClick={onCopy}>
             {copied ? "✓ Đã copy" : "Copy link"}
@@ -392,12 +400,9 @@ export default function HomeClient({
   }, []);
   const getAffiliateUrl = (url?: string | null) => {
     if (!url) return "https://shopee.vn";
-    if (isShopeeUrl(url)) {
-      return buildShopeeAffiliateUrl(url, {
-        subId: user ? `u_${user.id.slice(0, 8)}` : "dealhoan",
-      });
-    }
-    return url;
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://dealhoan.vn";
+    const subId = user ? `u_${user.id.slice(0, 8)}` : "dealhoan";
+    return buildCustomShortUrl(url, { baseUrl, subId });
   };
 
   const executeCalculation = async (targetUrl: string) => {
@@ -419,9 +424,8 @@ export default function HomeClient({
     // 1. If it is a sample chip demo (e.g. clicked chip buttons), display immediately
     if (SAMPLE_CHIP_PRODUCTS[trimmed]) {
       const chipProduct = SAMPLE_CHIP_PRODUCTS[trimmed];
-      const localTracked = isShopeeUrl(trimmed)
-        ? buildShopeeAffiliateUrl(trimmed, { subId })
-        : trimmed;
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://dealhoan.vn";
+      const localTracked = buildCustomShortUrl(trimmed, { baseUrl, subId });
       setCalculatedProduct(chipProduct);
       setTrackedLink(localTracked);
       setCopiedTracked(false);
@@ -466,9 +470,8 @@ export default function HomeClient({
     } catch {
       // Fallback only if server request completely fails
       const localProduct = resolveProductLocally(trimmed, allAvailableDeals);
-      const localTracked = isShopeeUrl(trimmed)
-        ? buildShopeeAffiliateUrl(trimmed, { subId })
-        : trimmed;
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://dealhoan.vn";
+      const localTracked = buildCustomShortUrl(trimmed, { baseUrl, subId });
       setCalculatedProduct(localProduct);
       setTrackedLink(localTracked);
       setCopiedTracked(false);

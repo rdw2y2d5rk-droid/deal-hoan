@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildShopeeAffiliateUrl, cleanShopeeUrl, isShopeeUrl } from "@/lib/deals/affiliate";
+import { buildShopeeAffiliateUrl, cleanShopeeUrl, isShopeeUrl, buildCustomShortUrl } from "@/lib/deals/affiliate";
 import { cashbackFor } from "@/lib/deals/score";
 import type { Platform } from "@/lib/deals/types";
 import { resolveProductLocally, type CalculatedProduct } from "@/lib/deals/resolve";
@@ -202,9 +202,15 @@ export async function POST(request: NextRequest) {
     // https://s.shopee.vn/an_redir?affiliate_id=17351320644
     // AccessTrade is used SOLELY as a read-only data source for product prices and images.
     // 100% of all affiliate commissions go directly to DealHoàn without any intermediary.
-    const trackedLink = isCurrentShopee
-      ? buildShopeeAffiliateUrl(canonicalUrl, { subId })
-      : canonicalUrl;
+    const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
+    const proto = request.headers.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
+    const siteBase = host
+      ? `${proto}://${host}`
+      : request.nextUrl.origin || process.env.NEXT_PUBLIC_SITE_URL || "https://dealhoan.vn";
+    const trackedLink = buildCustomShortUrl(canonicalUrl, {
+      baseUrl: siteBase,
+      subId,
+    });
 
     const resolvedProduct: CalculatedProduct = {
       name: finalName,

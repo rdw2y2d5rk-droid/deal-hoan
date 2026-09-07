@@ -85,3 +85,58 @@ export function isShopeeUrl(rawUrl: string): boolean {
     return false;
   }
 }
+
+/**
+ * Generates a clean, branded DealHoàn short link
+ * e.g.:
+ * - For Shopee product: https://dealhoan.vn/go?s=401425654.17054556097
+ * - For other links: https://dealhoan.vn/go?url=...
+ */
+export function buildCustomShortUrl(
+  rawUrl: string,
+  options?: {
+    baseUrl?: string;
+    subId?: string;
+  },
+): string {
+  let base = (options?.baseUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://dealhoan.vn").trim();
+  if (!base.startsWith("http://") && !base.startsWith("https://")) {
+    base = `https://${base}`;
+  }
+  const subId = options?.subId || "dealhoan";
+  const cleanUrl = cleanShopeeUrl(rawUrl);
+
+  try {
+    const u = new URL(cleanUrl.startsWith("http") ? cleanUrl : `https://${cleanUrl}`);
+    const host = u.hostname.toLowerCase();
+
+    // Check if it is a Shopee product
+    if (host.includes("shopee.vn") || host.includes("shp.ee")) {
+      const match1 = u.pathname.match(/\/product\/(\d+)\/(\d+)/i);
+      const match2 = u.pathname.match(/-i\.(\d+)\.(\d+)/i);
+      const match = match1 || match2;
+      if (match) {
+        const shopId = match[1];
+        const itemId = match[2];
+        const shortUrl = new URL("/go", base);
+        shortUrl.searchParams.set("s", `${shopId}.${itemId}`);
+        if (subId && subId !== "dealhoan" && subId !== "calc") {
+          shortUrl.searchParams.set("sub", subId);
+        }
+        return shortUrl.toString();
+      }
+    }
+
+    // Generic fallback for other URLs
+    const shortUrl = new URL("/go", base);
+    shortUrl.searchParams.set("url", cleanUrl);
+    if (subId && subId !== "dealhoan" && subId !== "calc") {
+      shortUrl.searchParams.set("sub", subId);
+    }
+    return shortUrl.toString();
+  } catch {
+    const shortUrl = new URL("/go", base);
+    shortUrl.searchParams.set("url", rawUrl);
+    return shortUrl.toString();
+  }
+}

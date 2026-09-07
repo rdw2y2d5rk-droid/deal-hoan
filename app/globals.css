@@ -735,6 +735,14 @@ h2,
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.tracked-link a {
+  display: block;
+  text-decoration: none;
+  min-width: 0;
+}
+.tracked-link a:hover b {
+  text-decoration: underline;
+}
 .tracked-link button {
   height: 36px;
   flex: none;

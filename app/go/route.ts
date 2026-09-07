@@ -5,8 +5,19 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const targetUrl = searchParams.get("url");
-  const subId = searchParams.get("sub_id") || "dealhoan";
+  const s = searchParams.get("s");
+  const subId = searchParams.get("sub") || searchParams.get("sub_id") || "dealhoan";
+  let targetUrl = searchParams.get("url") || searchParams.get("p");
+
+  // Support short Shopee format: ?s=shopId.itemId or ?s=itemId
+  if (s) {
+    if (s.includes(".")) {
+      const [shopId, itemId] = s.split(".");
+      targetUrl = `https://shopee.vn/product/${shopId}/${itemId}`;
+    } else {
+      targetUrl = `https://shopee.vn/product/0/${s}`;
+    }
+  }
 
   if (!targetUrl) {
     return NextResponse.redirect(new URL("/", request.url));
