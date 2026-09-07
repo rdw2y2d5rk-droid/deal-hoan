@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import confetti from "canvas-confetti";
 import type { User } from "@supabase/supabase-js";
 import { formatPrice, formatSold } from "@/lib/deals/format";
 import type { Deal, DealBundle, Coupon, CouponCategory } from "@/lib/deals/types";
@@ -65,7 +66,6 @@ function Receipt({
   platform = "Shopee Mall",
   trackedLink,
   copied,
-  copyCelebrationId,
   onCopy,
   onBuy,
   onClear,
@@ -73,7 +73,6 @@ function Receipt({
   platform?: string;
   trackedLink?: string;
   copied?: boolean;
-  copyCelebrationId?: number;
   onCopy?: () => void;
   onBuy?: () => void;
   onClear?: () => void;
@@ -119,11 +118,6 @@ function Receipt({
       </div>
       {trackedLink && (
         <div className="tracked-link">
-          {copyCelebrationId ? (
-            <span className="copy-confetti" key={copyCelebrationId} aria-hidden="true">
-              {Array.from({ length: 14 }, (_, index) => <i key={index} />)}
-            </span>
-          ) : null}
           <span>
             <small>Link mới — đã gắn hoàn tiền</small>
             <b>{trackedLink}</b>
@@ -269,7 +263,6 @@ export default function HomeClient({
   const [refCopied, setRefCopied] = useState(false);
   const [trackedLink, setTrackedLink] = useState("");
   const [copiedTracked, setCopiedTracked] = useState(false);
-  const [copyCelebrationId, setCopyCelebrationId] = useState(0);
   const [buyOpen, setBuyOpen] = useState(false);
   const [buyDontShow, setBuyDontShow] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -534,13 +527,13 @@ export default function HomeClient({
                     platform={result}
                     trackedLink={trackedLink}
                     copied={copiedTracked}
-                    copyCelebrationId={copyCelebrationId}
                     onCopy={() => {
                       navigator.clipboard?.writeText(trackedLink);
                       setCopiedTracked(true);
-                      setCopyCelebrationId(Date.now());
+                      try {
+                        confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+                      } catch {}
                       setTimeout(() => setCopiedTracked(false), 1500);
-                      setTimeout(() => setCopyCelebrationId(0), 1000);
                       notify("Đã copy link hoàn tiền");
                     }}
                     onBuy={() => {
@@ -985,6 +978,9 @@ export default function HomeClient({
                   "https://dealhoan.vn/ref/BAN2026",
                 );
                 setRefCopied(true);
+                try {
+                  confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+                } catch {}
                 setTimeout(() => setRefCopied(false), 2500);
                 notify("Đã copy link giới thiệu của bạn");
               }}
