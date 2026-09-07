@@ -94,12 +94,6 @@ function Receipt({
           <span>Giá niêm yết</span>
           <s>1.990.000đ</s>
         </div>
-        <div>
-          <span>
-            Giảm giá sàn + mã <code>DEALHOAN50</code>
-          </span>
-          <b className="red">−450.000đ</b>
-        </div>
         <hr />
         <div className="total">
           <b>Thanh toán hôm nay</b>
