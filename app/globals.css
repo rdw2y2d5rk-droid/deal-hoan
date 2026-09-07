@@ -124,58 +124,45 @@ header {
 }
 .brand {
   display: flex;
-  gap: 10px;
+  gap: 7px;
   align-items: center;
-  font-family: Archivo;
+  flex: 0 0 auto;
 }
-.brand i {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  background: linear-gradient(145deg, #ff8251 0%, #ee4d2d 52%, #d83a1c 100%);
-  color: #fff;
+.brand-mark,
+.brand-wordmark {
+  display: block;
   position: relative;
-  font-size: 26px;
-  line-height: 1;
-  font-style: normal;
-  box-shadow:
-    0 6px 16px rgba(238, 77, 45, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  overflow: hidden;
+}
+.brand-mark {
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  box-shadow: 0 5px 14px rgba(238, 77, 45, 0.18);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.brand i svg {
-  width: 26px;
-  height: 26px;
+.brand-mark img {
+  position: absolute;
+  width: 117px;
+  max-width: none;
+  height: auto;
+  transform: translate(-39px, -8px);
 }
-.brand:hover i {
+.brand-wordmark {
+  width: 142px;
+  height: 43px;
+}
+.brand-wordmark img {
+  position: absolute;
+  width: 220px;
+  max-width: none;
+  height: auto;
+  transform: translate(-39px, -89px);
+}
+.brand:hover .brand-mark {
   transform: translateY(-1px) rotate(-2deg);
-  box-shadow:
-    0 9px 20px rgba(238, 77, 45, 0.36),
-    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  box-shadow: 0 8px 18px rgba(238, 77, 45, 0.26);
 }
-.brand > span {
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-}
-.brand b {
-  font: 800 21px Archivo;
-  letter-spacing: -0.4px;
-}
-.brand > span > small {
-  margin-top: 3px;
-  color: #a3a3a3;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-}
-.brand b {
-  color: #171717;
-}
-.brand b span,
 .site-footer h3 span {
   color: #ee4d2d;
 }
@@ -1903,6 +1890,22 @@ h2,
   .nav {
     height: 60px;
     gap: 12px;
+  }
+  .brand-mark {
+    width: 39px;
+    height: 39px;
+  }
+  .brand-mark img {
+    width: 106px;
+    transform: translate(-35px, -7px);
+  }
+  .brand-wordmark {
+    width: 128px;
+    height: 39px;
+  }
+  .brand-wordmark img {
+    width: 198px;
+    transform: translate(-35px, -80px);
   }
   .search {
     display: none;

@@ -15,6 +15,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "DealHoàn — Săn deal & hoàn tiền",
   description: "Nền tảng săn deal và hoàn tiền cho người mua sắm thông minh.",
+  icons: {
+    icon: "/brand/deal-hoan-logo.png",
+    apple: "/brand/deal-hoan-logo.png",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

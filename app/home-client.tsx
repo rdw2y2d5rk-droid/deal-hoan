@@ -404,32 +404,12 @@ export default function HomeClient({
       </div>
       <header>
         <div className="container nav">
-          <a className="brand" title="DealHoàn — dán link, nhận hoàn tiền">
-            <i>
-              <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
-                <path
-                  d="M20.5 9.2A8.7 8.7 0 1 1 15.1 4.4"
-                  stroke="white"
-                  strokeWidth="2.35"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="m12.3 5.9 2.8-1.5-1.4-2.8"
-                  stroke="white"
-                  strokeWidth="2.35"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <rect x="7.1" y="9.15" width="11.7" height="8.15" rx="2.35" fill="white" />
-                <path d="M10.2 12.2h5.65M13.35 10.65v5.1" stroke="#ED4D2D" strokeWidth="1.75" strokeLinecap="round" />
-                <circle cx="18.5" cy="17.9" r="2.15" fill="#86EFAC" stroke="#ED4D2D" strokeWidth="1.25" />
-              </svg>
-            </i>
-            <span className="brand-copy">
-              <b>
-                Deal<span>Hoàn</span>
-              </b>
-              <small>Mua rẻ · Hoàn tiền</small>
+          <a className="brand" href="/" title="DealHoàn — dán link, nhận hoàn tiền">
+            <span className="brand-mark" aria-hidden="true">
+              <img src="/brand/deal-hoan-logo.png" alt="" />
+            </span>
+            <span className="brand-wordmark">
+              <img src="/brand/deal-hoan-logo.png" alt="DealHoàn — Săn deal · Hoàn tiền" />
             </span>
           </a>
           <form className="search" onSubmit={calc}>
