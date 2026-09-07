@@ -4,6 +4,7 @@ import type { User } from "@supabase/supabase-js";
 import { formatPrice, formatSold } from "@/lib/deals/format";
 import type { Deal, DealBundle, Coupon, CouponCategory } from "@/lib/deals/types";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { buildShopeeAffiliateUrl, isShopeeUrl } from "@/lib/deals/affiliate";
 
 /**
  * Tabs over "Deal hot hôm nay". Every sort is backed by a field the marketplace
@@ -339,6 +340,16 @@ export default function HomeClient({
       subscription.unsubscribe();
     };
   }, []);
+  const getAffiliateUrl = (url?: string | null) => {
+    if (!url) return "https://shopee.vn";
+    if (isShopeeUrl(url)) {
+      return buildShopeeAffiliateUrl(url, {
+        subId: user ? `u_${user.id.slice(0, 8)}` : "dealhoan",
+      });
+    }
+    return url;
+  };
+
   const calc = (e: React.FormEvent) => {
     e.preventDefault();
     if (!link.trim()) {
@@ -354,18 +365,21 @@ export default function HomeClient({
     setTimeout(() => {
       setBusy(false);
       setResultClosing(false);
+      const isShopee = isShopeeUrl(link);
       const platform = link.toLowerCase().includes("tiktok")
         ? "TikTok Shop"
         : link.toLowerCase().includes("lazada")
           ? "Lazada"
           : "Shopee Mall";
       setResult(platform);
-      setTrackedLink(
-        `https://dealhoan.vn/go/DH-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
-      );
+      const subId = user ? `u_${user.id.slice(0, 8)}` : "calc";
+      const finalLink = isShopee
+        ? buildShopeeAffiliateUrl(link, { subId })
+        : link;
+      setTrackedLink(finalLink);
       setCopiedTracked(false);
-      notify("Đã tính xong — mua qua link mới để nhận hoàn 77.000đ");
-    }, 500);
+      notify("Đã tính xong — link đã gắn mã affiliate Shopee của bạn");
+    }, 400);
   };
   const visibleHotDeals = [...hotDeals].sort(HOT_SORTERS[tab]);
   const tm = [
@@ -512,7 +526,7 @@ export default function HomeClient({
                     onBuy={() => {
                       if (buyDontShow) {
                         window.open(
-                          trackedLink || "https://dealhoan.vn/go/DEMO",
+                          trackedLink || (link ? getAffiliateUrl(link) : "https://shopee.vn"),
                           "_blank",
                           "noopener",
                         );
@@ -696,7 +710,7 @@ export default function HomeClient({
                 <article key={deal.id}>
                   <div className="placeholder">
                     <a
-                      href={deal.productUrl}
+                      href={getAffiliateUrl(deal.productUrl)}
                       target="_blank"
                       rel="noopener noreferrer nofollow"
                       className="deal-image-link"
@@ -715,7 +729,7 @@ export default function HomeClient({
                   </div>
                   <strong>
                     <a
-                      href={deal.productUrl}
+                      href={getAffiliateUrl(deal.productUrl)}
                       target="_blank"
                       rel="noopener noreferrer nofollow"
                     >
@@ -766,7 +780,7 @@ export default function HomeClient({
             <article className="deal" key={deal.id}>
               <div className="placeholder">
                 <a
-                  href={deal.productUrl}
+                  href={getAffiliateUrl(deal.productUrl)}
                   target="_blank"
                   rel="noopener noreferrer nofollow"
                   className="deal-image-link"
@@ -809,7 +823,7 @@ export default function HomeClient({
                 </small>
                 <strong>
                   <a
-                    href={deal.productUrl}
+                    href={getAffiliateUrl(deal.productUrl)}
                     target="_blank"
                     rel="noopener noreferrer nofollow"
                   >
@@ -825,7 +839,7 @@ export default function HomeClient({
                 <footer>
                   <b>₫ Hoàn {formatPrice(deal.cashback)}</b>
                   <a
-                    href={deal.productUrl}
+                    href={getAffiliateUrl(deal.productUrl)}
                     target="_blank"
                     rel="noopener noreferrer nofollow"
                   >
@@ -846,7 +860,7 @@ export default function HomeClient({
             </p>
           </div>
           <a
-            href="https://shopee.vn/m/ma-giam-gia"
+            href={getAffiliateUrl("https://shopee.vn/m/ma-giam-gia")}
             target="_blank"
             rel="noopener noreferrer nofollow"
           >
@@ -1074,7 +1088,7 @@ export default function HomeClient({
                   onClick={() => {
                     setBuyOpen(false);
                     window.open(
-                      trackedLink || "https://dealhoan.vn/go/DEMO",
+                      trackedLink || (link ? getAffiliateUrl(link) : "https://shopee.vn"),
                       "_blank",
                       "noopener",
                     );
