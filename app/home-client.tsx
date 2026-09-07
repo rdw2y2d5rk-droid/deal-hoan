@@ -543,8 +543,15 @@ export default function HomeClient({
                 </button>
               </>
             ) : (
-              <button disabled={authPending} onClick={signInWithGoogle}>
-                {authPending ? "Đang mở Google…" : "Đăng nhập Google"}
+              <button disabled={authPending} onClick={signInWithGoogle} className="account-login-btn">
+                {authPending ? (
+                  "Đang mở…"
+                ) : (
+                  <>
+                    <span className="auth-btn-desktop">Đăng nhập Google</span>
+                    <span className="auth-btn-mobile">Đăng nhập</span>
+                  </>
+                )}
               </button>
             )}
           </div>
