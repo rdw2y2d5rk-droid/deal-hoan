@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { formatPrice, formatSold } from "@/lib/deals/format";
 import type { Deal, DealBundle, Coupon, CouponCategory } from "@/lib/deals/types";
@@ -64,6 +65,7 @@ function Receipt({
   platform = "Shopee Mall",
   trackedLink,
   copied,
+  copyCelebrationId,
   onCopy,
   onBuy,
   onClear,
@@ -71,6 +73,7 @@ function Receipt({
   platform?: string;
   trackedLink?: string;
   copied?: boolean;
+  copyCelebrationId?: number;
   onCopy?: () => void;
   onBuy?: () => void;
   onClear?: () => void;
@@ -116,11 +119,18 @@ function Receipt({
       </div>
       {trackedLink && (
         <div className="tracked-link">
+          {copyCelebrationId ? (
+            <span className="copy-confetti" key={copyCelebrationId} aria-hidden="true">
+              {Array.from({ length: 14 }, (_, index) => <i key={index} />)}
+            </span>
+          ) : null}
           <span>
             <small>Link mới — đã gắn hoàn tiền</small>
             <b>{trackedLink}</b>
           </span>
-          <button onClick={onCopy}>{copied ? "✓ Đã copy" : "Copy link"}</button>
+          <button className={copied ? "is-copied" : ""} onClick={onCopy}>
+            {copied ? "✓ Đã copy" : "Copy link"}
+          </button>
         </div>
       )}
       <button className="primary wide" onClick={onBuy}>
@@ -132,7 +142,7 @@ function Receipt({
             Mua qua link mới hoặc nút trên — ghi nhận trong 24 giờ, nhận hoàn
             sau 14–15 ngày · <a href="#how">điều kiện</a>
           </span>
-          <button onClick={onClear}>Tính link khác</button>
+          <button className="result-reset" onClick={onClear}>Tính link khác</button>
         </div>
       )}
     </div>
@@ -259,6 +269,7 @@ export default function HomeClient({
   const [refCopied, setRefCopied] = useState(false);
   const [trackedLink, setTrackedLink] = useState("");
   const [copiedTracked, setCopiedTracked] = useState(false);
+  const [copyCelebrationId, setCopyCelebrationId] = useState(0);
   const [buyOpen, setBuyOpen] = useState(false);
   const [buyDontShow, setBuyDontShow] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -406,14 +417,14 @@ export default function HomeClient({
       </div>
       <header>
         <div className="container nav">
-          <a className="brand" href="/" title="DealHoàn — dán link, nhận hoàn tiền">
+          <Link className="brand" href="/" title="DealHoàn — dán link, nhận hoàn tiền">
             <span className="brand-mark" aria-hidden="true">
               <img src="/brand/deal-hoan-mark.png" alt="" />
             </span>
             <span className="brand-wordmark">
               <img src="/brand/deal-hoan-logo.png" alt="DealHoàn — Săn deal · Hoàn tiền" />
             </span>
-          </a>
+          </Link>
           <form className="search" onSubmit={calc}>
             <span>⌕</span>
             <input placeholder="Tìm sản phẩm, deal, mã giảm giá…" />
@@ -480,6 +491,11 @@ export default function HomeClient({
                   }, 420);
                 }
               }}
+              onPaste={() => {
+                requestAnimationFrame(() => {
+                  if (linkInputRef.current) linkInputRef.current.scrollLeft = 0;
+                });
+              }}
               placeholder="Dán link sản phẩm Shopee, TikTok Shop hoặc Lazada…"
             />
             {link && (
@@ -518,9 +534,13 @@ export default function HomeClient({
                     platform={result}
                     trackedLink={trackedLink}
                     copied={copiedTracked}
+                    copyCelebrationId={copyCelebrationId}
                     onCopy={() => {
                       navigator.clipboard?.writeText(trackedLink);
                       setCopiedTracked(true);
+                      setCopyCelebrationId(Date.now());
+                      setTimeout(() => setCopiedTracked(false), 1500);
+                      setTimeout(() => setCopyCelebrationId(0), 1000);
                       notify("Đã copy link hoàn tiền");
                     }}
                     onBuy={() => {
