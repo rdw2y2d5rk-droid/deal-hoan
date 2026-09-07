@@ -107,10 +107,21 @@ async function readCache(): Promise<CacheFile | null> {
 
   if (flashData?.sessions?.length) {
     const nowSec = Math.floor(Date.now() / 1000);
+    const vnTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+    const vnHour = vnTime.getHours();
+
+    const matchedSession = flashData.sessions.find((s: { startTime: number; endTime: number }) => {
+      const sStart = new Date(s.startTime * 1000).getHours();
+      const sEnd = new Date(s.endTime * 1000).getHours() || 24;
+      return vnHour >= sStart && vnHour < sEnd;
+    });
+
     const activeSession =
+      matchedSession ||
       flashData.sessions.find(
         (s: { startTime: number; endTime: number }) => nowSec >= s.startTime && nowSec < s.endTime
-      ) || flashData.sessions[0];
+      ) ||
+      flashData.sessions[0];
 
     const allItems: (ScrapedProduct & { discountPercent?: number; rawDiscount?: number })[] = [];
     const seen = new Set<string>();
