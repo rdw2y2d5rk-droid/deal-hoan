@@ -193,9 +193,9 @@ export async function POST(request: NextRequest) {
         ? Math.round(((finalOriginalPrice - finalPrice) / finalOriginalPrice) * 100)
         : 0;
     const savingsPercent =
-      finalOriginalPrice > finalPrice - finalCashback
-        ? Math.round(((finalOriginalPrice - (finalPrice - finalCashback)) / finalOriginalPrice) * 100)
-        : Math.round((finalCashback / finalPrice) * 100);
+      finalPrice > 0
+        ? Math.round((finalCashback / finalPrice) * 100)
+        : 5;
 
     // NOTE ON COMMISSION ATTRIBUTION:
     // We intentionally route outbound clicks through our DIRECT Shopee Affiliate link:

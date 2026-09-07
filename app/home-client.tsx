@@ -87,9 +87,7 @@ function Receipt({
   const actualCost = price - cashback;
   const savingsPercent =
     product?.savingsPercent ??
-    (originalPrice > actualCost
-      ? Math.round(((originalPrice - actualCost) / originalPrice) * 100)
-      : Math.round((cashback / (price || 1)) * 100));
+    (price > 0 ? Math.round((cashback / price) * 100) : 5);
   const productName = product?.name || "Tai nghe Bluetooth chống ồn Sony WF-C710N";
   const productImg = product?.imageUrl || null;
   const displayPlatform = product?.platform || platform;
