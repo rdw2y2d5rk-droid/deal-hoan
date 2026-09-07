@@ -40,10 +40,12 @@ export async function fetchShopeeFlashSale({ limitPerSession = ITEMS_PER_SESSION
 
   const browser = await chromium.launch({
     headless: true,
+    ignoreDefaultArgs: ["--enable-automation"],
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--disable-blink-features=AutomationControlled",
+      "--window-size=1440,900",
     ],
   });
 
@@ -53,6 +55,23 @@ export async function fetchShopeeFlashSale({ limitPerSession = ITEMS_PER_SESSION
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
       viewport: { width: 1440, height: 900 },
       locale: "vi-VN",
+      extraHTTPHeaders: {
+        "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+      },
+    });
+
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, "webdriver", {
+        get: () => undefined,
+      });
+      // @ts-ignore
+      window.chrome = { runtime: {} };
+      Object.defineProperty(navigator, "plugins", {
+        get: () => [1, 2, 3, 4, 5],
+      });
+      Object.defineProperty(navigator, "languages", {
+        get: () => ["vi-VN", "vi", "en-US", "en"],
+      });
     });
 
     const page = await context.newPage();
@@ -63,8 +82,8 @@ export async function fetchShopeeFlashSale({ limitPerSession = ITEMS_PER_SESSION
       timeout: 30000,
     });
 
-    // Chờ 2 giây để Shopee khởi tạo session và chữ ký bảo mật
-    await page.waitForTimeout(2000);
+    // Chờ 3 giây để Shopee khởi tạo session và chữ ký bảo mật
+    await page.waitForTimeout(3000);
 
     console.log("📦 Đang trích xuất các khung giờ Flash Sale và sản phẩm...");
 
@@ -76,10 +95,14 @@ export async function fetchShopeeFlashSale({ limitPerSession = ITEMS_PER_SESSION
           headers: {
             accept: "application/json",
             "x-api-source": "pc",
+            referer: "https://shopee.vn/flash_sale",
           },
         }
       );
       const sessionsJson = await sessionsRes.json();
+      if (sessionsJson.error) {
+        console.warn("Shopee API returned error:", sessionsJson.error);
+      }
       const rawSessions = sessionsJson.data?.sessions || [];
 
       const now = Math.floor(Date.now() / 1000);
@@ -243,15 +266,21 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       console.log(`✅ Đã cập nhật ${homeProducts.length} deal của khung giờ "${ongoingSession.timeSlot}" vào trang chủ!`);
     }
 
-    // Đồng bộ lên Supabase Cloud nếu có cấu hình
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    // Đồng bộ lên Supabase Cloud
+    const supabaseUrl =
+      process.env.SUPABASE_URL ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      "https://iodnsvveodrrvnjtwpzm.supabase.co";
     const supabaseKey =
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
       process.env.SUPABASE_SERVICE_KEY ||
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      "sb_publishable__pgUPGNNoA9_6Dn1VK1a_g_jRNYEXDc";
 
-    if (supabaseUrl && supabaseKey) {
+    if (sessions.length === 0) {
+      console.warn("⚠️  Cào được 0 phiên Flash Sale. Giữ nguyên cache Supabase hiện tại để không làm mất sản phẩm trên trang chủ.");
+    } else if (supabaseUrl && supabaseKey) {
       try {
         const { createClient } = await import("@supabase/supabase-js");
         const supabase = createClient(supabaseUrl, supabaseKey);
@@ -260,13 +289,18 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
           .upsert({ id: "latest", data: outputPayload, updated_at: new Date().toISOString() });
 
         if (sbError) {
-          console.warn("⚠️  Chưa đồng bộ lên Supabase (cần tạo bảng 'flash_sale_cache' trước):", sbError.message);
+          console.error("❌ Lỗi đồng bộ lên Supabase:", sbError.message);
+          process.exit(1);
         } else {
           console.log("☁️  Đã đồng bộ dữ liệu Flash Sale lên Supabase Cloud thành công!");
         }
       } catch (sbErr) {
-        console.warn("⚠️  Lỗi kết nối Supabase:", sbErr.message);
+        console.error("❌ Lỗi kết nối Supabase:", sbErr.message);
+        process.exit(1);
       }
+    } else {
+      console.error("❌ Không tìm thấy thông tin xác thực Supabase để đồng bộ.");
+      process.exit(1);
     }
 
     console.log("\n--- TỔNG HỢP CÁC KHUNG GIỜ ---");

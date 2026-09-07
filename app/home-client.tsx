@@ -262,7 +262,7 @@ export default function HomeClient({
   const [toast, setToast] = useState("");
 
   const [seconds, setSeconds] = useState(() => {
-    const endMs = flashEndTime || getNextShopeeSlotEndMs();
+    const endMs = flashEndTime && flashEndTime > Date.now() ? flashEndTime : getNextShopeeSlotEndMs();
     return Math.max(0, Math.floor((endMs - Date.now()) / 1000));
   });
   const [busy, setBusy] = useState(false);
@@ -277,7 +277,7 @@ export default function HomeClient({
 
   useEffect(() => {
     const tick = () => {
-      const endMs = flashEndTime || getNextShopeeSlotEndMs();
+      const endMs = flashEndTime && flashEndTime > Date.now() ? flashEndTime : getNextShopeeSlotEndMs();
       setSeconds(Math.max(0, Math.floor((endMs - Date.now()) / 1000)));
     };
     tick();

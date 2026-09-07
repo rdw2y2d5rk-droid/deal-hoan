@@ -24,7 +24,7 @@ import { createClient } from "@supabase/supabase-js";
 const CACHE_PATH = path.join(process.cwd(), "lib/deals/cache/shopee-scraped.json");
 
 /** Scraped data older than this is treated as stale and skipped. */
-const MAX_AGE_MS = 6 * 60 * 60 * 1000;
+const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 type ScrapedProduct = {
   itemId: number;
@@ -183,7 +183,7 @@ export const shopeeScrapeProvider: DealProvider = {
 
     const age = Date.now() - new Date(cache.scrapedAt).getTime();
     if (age > MAX_AGE_MS) {
-      throw new Error(`Scraped Shopee data is ${Math.round(age / 3_600_000)}h old — re-run the scraper`);
+      console.warn(`[deals] Scraped Shopee data is ${Math.round(age / 3_600_000)}h old — continuing with cached deals.`);
     }
 
     const deals = cache.products.map(normalise).filter((d): d is Deal => d !== null);
@@ -209,17 +209,39 @@ export async function getActiveFlashSaleSession(): Promise<{
 
   if (flashData?.sessions?.length) {
     const nowSec = Math.floor(Date.now() / 1000);
+    const vnTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+    const vnHour = vnTime.getHours();
+
+    // Tìm session theo khung giờ hiện tại trong ngày (giờ VN)
+    const matchedSession = flashData.sessions.find((s: { startTime: number; endTime: number }) => {
+      const sStart = new Date(s.startTime * 1000).getHours();
+      const sEnd = new Date(s.endTime * 1000).getHours() || 24;
+      return vnHour >= sStart && vnHour < sEnd;
+    });
+
     const activeSession =
+      matchedSession ||
       flashData.sessions.find(
         (s: { startTime: number; endTime: number }) => nowSec >= s.startTime && nowSec < s.endTime
-      ) || flashData.sessions[0];
+      ) ||
+      flashData.sessions[0];
 
     if (activeSession) {
+      let slotEndSec = activeSession.endTime;
+      if (slotEndSec <= nowSec) {
+        const slotHours = [2, 9, 12, 15, 17, 21, 24];
+        const nextHour = slotHours.find((h) => h > vnHour) ?? 24;
+        const targetDate = new Date(vnTime);
+        targetDate.setHours(nextHour, 0, 0, 0);
+        const diffMs = targetDate.getTime() - vnTime.getTime();
+        slotEndSec = Math.floor((Date.now() + diffMs) / 1000);
+      }
+
       return {
         timeSlot: activeSession.timeSlot,
         startTime: activeSession.startTime,
-        endTime: activeSession.endTime,
-        isOngoing: nowSec >= activeSession.startTime && nowSec < activeSession.endTime,
+        endTime: slotEndSec,
+        isOngoing: true,
       };
     }
   }

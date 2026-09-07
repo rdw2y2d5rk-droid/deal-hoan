@@ -1,6 +1,9 @@
 name: Auto Update Shopee Flash Sale
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     # Chạy tự động mỗi giờ một lần (lúc phút thứ 01)
     - cron: '1 * * * *'
@@ -30,5 +33,7 @@ jobs:
       - name: Scrape Shopee Flash Sale & Sync to Supabase
         run: node scripts/shopee-scrape-flashsale.mjs
         env:
-          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://iodnsvveodrrvnjtwpzm.supabase.co' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || '' }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable__pgUPGNNoA9_6Dn1VK1a_g_jRNYEXDc' }}
+
