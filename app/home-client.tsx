@@ -153,7 +153,7 @@ function Receipt({
       {trackedLink && (
         <div className="tracked-link">
           <span>
-            <small>Link mới — đã gắn hoàn tiền</small>
+            <small>Link mới</small>
             <b>{trackedLink}</b>
           </span>
           <button className={copied ? "is-copied" : ""} onClick={onCopy}>
