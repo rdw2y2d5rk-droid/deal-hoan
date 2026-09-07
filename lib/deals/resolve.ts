@@ -124,6 +124,13 @@ export const CATEGORY_FALLBACKS: Array<{
     defaultOriginalPrice: 4990000,
   },
   {
+    keywords: ["áo hai dây", "ao hai day", "hai dây", "hai day", "croptop", "bra", "áo lót", "ao lot"],
+    imageUrl: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80",
+    nameFallback: "Áo hai dây / Croptop thời trang nữ",
+    defaultPrice: 60000,
+    defaultOriginalPrice: 120000,
+  },
+  {
     keywords: ["polo", "áo polo", "ao polo", "áo thun", "ao thun", "thun", "t-shirt", "tee", "oversize", "streetwear", "unisex"],
     imageUrl: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80",
     nameFallback: "Áo polo / Áo thun thời trang Unisex",
@@ -222,23 +229,26 @@ export function matchProductFromCatalog(rawUrl: string, deals: Deal[] = []): Cal
   }
 
   const slug = parseSlugFromUrl(trimmed);
-  if (slug) {
+  if (slug && !slug.startsWith("Sản phẩm")) {
+    const STOP_WORDS = new Set(["sản", "phẩm", "shopee", "lazada", "tiktok", "hang", "hàng", "chính", "hãng", "deal", "hoàn", "tiền"]);
     const slugLower = slug.toLowerCase();
-    const slugWords = slugLower.split(" ").filter((w) => w.length > 2);
-    for (const d of deals) {
-      const dealNameLower = d.name.toLowerCase();
-      const matchCount = slugWords.filter((w) => dealNameLower.includes(w)).length;
-      if (matchCount >= 2 || (slugWords.length === 1 && matchCount === 1)) {
-        return {
-          name: slug.length > d.name.length ? slug : d.name,
-          imageUrl: d.imageUrl,
-          price: d.price,
-          originalPrice: d.originalPrice,
-          cashback: d.cashback,
-          platform: d.platform,
-          seller: d.seller,
-          discountPercent: d.discountPercent,
-        };
+    const slugWords = slugLower.split(" ").filter((w) => w.length > 2 && !STOP_WORDS.has(w));
+    if (slugWords.length >= 2) {
+      for (const d of deals) {
+        const dealNameLower = d.name.toLowerCase();
+        const matchCount = slugWords.filter((w) => dealNameLower.includes(w)).length;
+        if (matchCount >= 2) {
+          return {
+            name: slug.length > d.name.length ? slug : d.name,
+            imageUrl: d.imageUrl,
+            price: d.price,
+            originalPrice: d.originalPrice,
+            cashback: d.cashback,
+            platform: d.platform,
+            seller: d.seller,
+            discountPercent: d.discountPercent,
+          };
+        }
       }
     }
   }

@@ -8,7 +8,7 @@ import type { Deal, DealBundle, Coupon, CouponCategory, Platform } from "@/lib/d
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { buildShopeeAffiliateUrl, isShopeeUrl } from "@/lib/deals/affiliate";
 import { cashbackFor } from "@/lib/deals/score";
-import { resolveProductLocally, type CalculatedProduct } from "@/lib/deals/resolve";
+import { resolveProductLocally, matchProductFromCatalog, type CalculatedProduct } from "@/lib/deals/resolve";
 
 /**
  * Tabs over "Deal hot hôm nay". Every sort is backed by a field the marketplace
@@ -405,19 +405,21 @@ export default function HomeClient({
 
     const subId = user ? `u_${user.id.slice(0, 8)}` : "calc";
 
-    // 1. Instant local resolution from current deals and sample products
+    // 1. Check if the link matches an exact sample chip or known exact deal
     const allAvailableDeals = [...hotDeals, ...flashDeals];
-    const localProduct = resolveProductLocally(trimmed, allAvailableDeals);
-    const localIsShopee = isShopeeUrl(trimmed);
-    const localTracked = localIsShopee
-      ? buildShopeeAffiliateUrl(trimmed, { subId })
-      : trimmed;
+    const exactMatch = matchProductFromCatalog(trimmed, allAvailableDeals);
 
-    setCalculatedProduct(localProduct);
-    setResult(localProduct.platform);
-    setTrackedLink(localTracked);
-    setCopiedTracked(false);
-    setResultClosing(false);
+    // If it is an exact catalog deal / sample chip (like tai-nghe-sony), display immediately
+    if (exactMatch) {
+      const localTracked = isShopeeUrl(trimmed)
+        ? buildShopeeAffiliateUrl(trimmed, { subId })
+        : trimmed;
+      setCalculatedProduct(exactMatch);
+      setResult(exactMatch.platform);
+      setTrackedLink(localTracked);
+      setCopiedTracked(false);
+      setResultClosing(false);
+    }
 
     // 2. Fetch live OpenGraph metadata / shortlink resolution from API
     try {
@@ -435,10 +437,23 @@ export default function HomeClient({
           if (data.trackedLink) {
             setTrackedLink(data.trackedLink);
           }
+          setCopiedTracked(false);
+          setResultClosing(false);
         }
       }
     } catch {
-      // Local resolution already in place as graceful fallback
+      // Fallback to local heuristic only if API fails and we didn't already have an exact match
+      if (!exactMatch) {
+        const localProduct = resolveProductLocally(trimmed, allAvailableDeals);
+        const localTracked = isShopeeUrl(trimmed)
+          ? buildShopeeAffiliateUrl(trimmed, { subId })
+          : trimmed;
+        setCalculatedProduct(localProduct);
+        setResult(localProduct.platform);
+        setTrackedLink(localTracked);
+        setCopiedTracked(false);
+        setResultClosing(false);
+      }
     } finally {
       setBusy(false);
       notify("Đã tính xong — đã gắn mã hoàn tiền 100% DealHoàn");
