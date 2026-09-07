@@ -4,6 +4,7 @@ import { cashbackFor } from "@/lib/deals/score";
 import type { Platform } from "@/lib/deals/types";
 import { resolveProductLocally, type CalculatedProduct } from "@/lib/deals/resolve";
 import { lookupAccessTradeProduct } from "@/lib/deals/providers/accesstrade";
+import { lookupFastShopeeProduct } from "@/lib/deals/providers/fast-shopee";
 
 export const dynamic = "force-dynamic";
 
@@ -37,16 +38,23 @@ export async function POST(request: NextRequest) {
     let ogTitle: string | null = null;
     let ogImage: string | null = null;
     let extractedPrice: number | null = null;
+    let showDiscount: number | null = null;
 
     // 1. Expand shortlinks or fetch OpenGraph metadata
-    // Using facebookexternalhit allows Shopee to return real SSR og:image and og:title without anti-bot blocks
     try {
-      const fetchHeaders: HeadersInit = {
-        "User-Agent":
-          "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-      };
+      const fetchHeaders: HeadersInit = isShopee
+        ? {
+            "User-Agent":
+              "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+            Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+          }
+        : {
+            "User-Agent":
+              "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+            Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+          };
 
       const res = await fetch(rawUrl, {
         headers: fetchHeaders,
@@ -79,6 +87,15 @@ export async function POST(request: NextRequest) {
           }
         }
 
+        // Extract discount percent from Shopee SSR (e.g. "show_discount": 35)
+        const discountMatch = html.match(/"show_discount":\s*(\d+)/i);
+        if (discountMatch) {
+          const parsedDisc = Number(discountMatch[1]);
+          if (parsedDisc > 0 && parsedDisc < 95) {
+            showDiscount = parsedDisc;
+          }
+        }
+
         // Extract price if exposed in OpenGraph
         const rawPriceStr =
           extractMeta(html, "product:price:amount") ||
@@ -95,36 +112,50 @@ export async function POST(request: NextRequest) {
       // Ignore network / timeout errors and proceed to multi-source catalog resolution
     }
 
-    // 2. Query AccessTrade product datafeed (exact SKU match for real price & CDN image)
-    const atProduct = await lookupAccessTradeProduct(canonicalUrl).catch(() => null);
+    const isCurrentShopee = isShopeeUrl(canonicalUrl) || isShopee;
 
-    // 3. Fallback to local catalog resolution if neither metadata nor feed provided name
+    // 2. Query high-speed verified Shopee price (1-hour cache, browser disguised, no token needed)
+    const fastShopeeProduct = isCurrentShopee
+      ? await lookupFastShopeeProduct(canonicalUrl, showDiscount).catch(() => null)
+      : null;
+
+    // 3. Query AccessTrade product datafeed (exact SKU match for real price & CDN image)
+    const atProduct = !fastShopeeProduct
+      ? await lookupAccessTradeProduct(canonicalUrl).catch(() => null)
+      : null;
+
+    // 4. Fallback to local catalog resolution if external providers yielded no match
     const baseProduct = resolveProductLocally(canonicalUrl, [], ogTitle);
 
-    const isCurrentShopee = isShopeeUrl(canonicalUrl) || isShopee;
-    const finalPlatform: Platform = atProduct?.platform
-      ? atProduct.platform
-      : canonicalUrl.toLowerCase().includes("tiktok")
-        ? "TikTok Shop"
-        : canonicalUrl.toLowerCase().includes("lazada")
-          ? "Lazada"
-          : isCurrentShopee
-            ? baseProduct.platform === "Shopee"
-              ? "Shopee"
-              : "Shopee Mall"
-            : "Shopee";
+    const finalPlatform: Platform = fastShopeeProduct
+      ? "Shopee"
+      : atProduct?.platform
+        ? atProduct.platform
+        : canonicalUrl.toLowerCase().includes("tiktok")
+          ? "TikTok Shop"
+          : canonicalUrl.toLowerCase().includes("lazada")
+            ? "Lazada"
+            : isCurrentShopee
+              ? baseProduct.platform === "Shopee"
+                ? "Shopee"
+                : "Shopee Mall"
+              : "Shopee";
 
-    const isVerifiedPrice = Boolean(atProduct?.isVerifiedPrice || extractedPrice !== null);
-    const priceType = atProduct?.isVerifiedPrice
+    const isVerifiedPrice = Boolean(
+      fastShopeeProduct?.isVerifiedPrice ||
+      atProduct?.isVerifiedPrice ||
+      extractedPrice !== null
+    );
+
+    const priceType = (fastShopeeProduct?.isVerifiedPrice || atProduct?.isVerifiedPrice || extractedPrice !== null)
       ? "exact"
-      : extractedPrice !== null
-        ? "exact"
-        : "estimated";
+      : "estimated";
 
-    const finalName = atProduct?.name || ogTitle || baseProduct.name;
-    const finalImage = atProduct?.imageUrl || ogImage || baseProduct.imageUrl;
-    const finalPrice = atProduct?.price ?? (extractedPrice || baseProduct.price);
+    const finalName = fastShopeeProduct?.name || atProduct?.name || ogTitle || baseProduct.name;
+    const finalImage = fastShopeeProduct?.imageUrl || atProduct?.imageUrl || ogImage || baseProduct.imageUrl;
+    const finalPrice = fastShopeeProduct?.price ?? atProduct?.price ?? (extractedPrice || baseProduct.price);
     const finalOriginalPrice =
+      fastShopeeProduct?.originalPrice ??
       atProduct?.originalPrice ??
       (baseProduct.originalPrice > finalPrice
         ? baseProduct.originalPrice
