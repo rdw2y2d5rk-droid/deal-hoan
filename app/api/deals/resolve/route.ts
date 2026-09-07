@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     const atProduct = await lookupAccessTradeProduct(canonicalUrl).catch(() => null);
 
     // 3. Fallback to local catalog resolution if neither metadata nor feed provided name
-    const baseProduct = resolveProductLocally(canonicalUrl);
+    const baseProduct = resolveProductLocally(canonicalUrl, [], ogTitle);
 
     const isCurrentShopee = isShopeeUrl(canonicalUrl) || isShopee;
     const finalPlatform: Platform = atProduct?.platform

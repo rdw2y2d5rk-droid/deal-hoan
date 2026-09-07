@@ -81,32 +81,18 @@ function Receipt({
   onBuy?: () => void;
   onClear?: () => void;
 }) {
-  const [customPrice, setCustomPrice] = useState<number | null>(null);
-  const [isEditingPrice, setIsEditingPrice] = useState(false);
-  const [priceInput, setPriceInput] = useState("");
-
-  useEffect(() => {
-    setCustomPrice(null);
-    setIsEditingPrice(false);
-  }, [product?.name, product?.price]);
-
-  const displayPlatform = product?.platform || platform;
-  const activePrice = customPrice !== null ? customPrice : (product?.price ?? 1540000);
-  const activeOriginalPrice =
-    product?.originalPrice && product.originalPrice > activePrice
-      ? product.originalPrice
-      : Math.round((activePrice * 1.25) / 1000) * 1000;
-  const activeCashback =
-    customPrice !== null
-      ? cashbackFor(activePrice, (displayPlatform as Platform) || "Shopee")
-      : (product?.cashback ?? 77000);
-  const actualCost = activePrice - activeCashback;
+  const price = product?.price ?? 1540000;
+  const originalPrice = product?.originalPrice ?? 1990000;
+  const cashback = product?.cashback ?? 77000;
+  const actualCost = price - cashback;
   const savingsPercent =
-    activeOriginalPrice > actualCost
-      ? Math.round(((activeOriginalPrice - actualCost) / activeOriginalPrice) * 100)
-      : Math.round((activeCashback / (activePrice || 1)) * 100);
+    product?.savingsPercent ??
+    (originalPrice > actualCost
+      ? Math.round(((originalPrice - actualCost) / originalPrice) * 100)
+      : Math.round((cashback / (price || 1)) * 100));
   const productName = product?.name || "Tai nghe Bluetooth chống ồn Sony WF-C710N";
   const productImg = product?.imageUrl || null;
+  const displayPlatform = product?.platform || platform;
 
   return (
     <div className="receipt">
@@ -133,127 +119,28 @@ function Receipt({
           <p>
             {displayPlatform} {product?.seller ? `· ${product.seller}` : ""} ·{" "}
             <em className="green">
-              Hoàn đến {activePrice > 0 ? ((activeCashback / activePrice) * 100).toFixed(0) : "5"}%
+              Hoàn đến {price > 0 ? ((cashback / price) * 100).toFixed(0) : "5"}%
             </em>
           </p>
         </div>
       </div>
       <div className="price-lines">
-        {activeOriginalPrice > activePrice && (
+        {originalPrice > price && (
           <div>
             <span>Giá niêm yết</span>
-            <s>{formatPrice(activeOriginalPrice)}</s>
+            <s>{formatPrice(originalPrice)}</s>
           </div>
         )}
         <hr />
         <div className="total">
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <b>Thanh toán hôm nay</b>
-            {product?.isVerifiedPrice ? (
-              <span
-                style={{
-                  fontSize: "11px",
-                  fontWeight: "700",
-                  color: "#16a34a",
-                  background: "#dcfce7",
-                  padding: "1px 6px",
-                  borderRadius: "4px",
-                }}
-                title="Giá lấy trực tiếp từ hệ thống dữ liệu sàn"
-              >
-                ✓ Giá thật từ sàn
-              </span>
-            ) : (
-              <button
-                type="button"
-                style={{
-                  fontSize: "11px",
-                  fontWeight: "600",
-                  color: "#2563eb",
-                  background: "#eff6ff",
-                  border: "1px solid #bfdbfe",
-                  padding: "1px 6px",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-                onClick={() => {
-                  setPriceInput(String(activePrice));
-                  setIsEditingPrice(true);
-                }}
-                title="Bấm để sửa theo số tiền thực tế bạn thanh toán"
-              >
-                ✎ Sửa giá
-              </button>
-            )}
-          </div>
-          {isEditingPrice ? (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const p = Number(priceInput.replace(/\D/g, ""));
-                if (p > 1000) setCustomPrice(p);
-                setIsEditingPrice(false);
-              }}
-              style={{ display: "flex", alignItems: "center", gap: "4px" }}
-            >
-              <input
-                autoFocus
-                type="text"
-                value={priceInput}
-                onChange={(e) => setPriceInput(e.target.value)}
-                placeholder="Nhập giá (đ)..."
-                style={{
-                  width: "110px",
-                  padding: "4px 8px",
-                  fontSize: "16px",
-                  fontWeight: "800",
-                  fontFamily: "Archivo",
-                  border: "1.5px solid #2563eb",
-                  borderRadius: "6px",
-                  textAlign: "right",
-                }}
-                onBlur={() => {
-                  const p = Number(priceInput.replace(/\D/g, ""));
-                  if (p > 1000) setCustomPrice(p);
-                  setIsEditingPrice(false);
-                }}
-              />
-              <button
-                type="submit"
-                style={{
-                  fontSize: "12px",
-                  fontWeight: "700",
-                  padding: "4px 8px",
-                  background: "#2563eb",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                }}
-              >
-                Lưu
-              </button>
-            </form>
-          ) : (
-            <strong
-              onClick={() => {
-                if (!product?.isVerifiedPrice) {
-                  setPriceInput(String(activePrice));
-                  setIsEditingPrice(true);
-                }
-              }}
-              style={!product?.isVerifiedPrice ? { cursor: "pointer" } : undefined}
-              title={!product?.isVerifiedPrice ? "Bấm để đổi giá" : undefined}
-            >
-              {formatPrice(activePrice)}
-            </strong>
-          )}
+          <b>Thanh toán hôm nay</b>
+          <strong>{formatPrice(price)}</strong>
         </div>
         <div>
           <span>
             Hoàn về ví <b className="green">sau 14–15 ngày</b>
           </span>
-          <b className="green">+{formatPrice(activeCashback)}</b>
+          <b className="green">+{formatPrice(cashback)}</b>
         </div>
         <div className="actual-cost">
           <b>Chi phí thực sau khi nhận hoàn</b>
@@ -261,15 +148,6 @@ function Receipt({
             <strong>{formatPrice(actualCost)}</strong>
             <em>tiết kiệm {savingsPercent}%</em>
           </span>
-        </div>
-        <div style={{ fontSize: "11.5px", color: "#737373", marginTop: "2px", lineHeight: 1.4 }}>
-          {product?.isVerifiedPrice ? (
-            <span>✓ Giá sản phẩm và ảnh bìa đã được đồng bộ trực tiếp từ sàn.</span>
-          ) : (
-            <span>
-              💡 Shopee sẽ tự động tính hoàn tiền theo <b>số tiền thực bạn thanh toán</b> sau voucher &amp; freeship khi nhận hàng.
-            </span>
-          )}
         </div>
       </div>
       {trackedLink && (

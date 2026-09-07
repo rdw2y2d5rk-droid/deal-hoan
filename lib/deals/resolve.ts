@@ -124,11 +124,25 @@ export const CATEGORY_FALLBACKS: Array<{
     defaultOriginalPrice: 4990000,
   },
   {
+    keywords: ["polo", "áo polo", "ao polo", "áo thun", "ao thun", "thun", "t-shirt", "tee", "oversize", "streetwear", "unisex"],
+    imageUrl: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80",
+    nameFallback: "Áo polo / Áo thun thời trang Unisex",
+    defaultPrice: 79000,
+    defaultOriginalPrice: 190000,
+  },
+  {
+    keywords: ["hoodie", "sweater", "áo khoác", "ao khoac", "jacket"],
+    imageUrl: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80",
+    nameFallback: "Áo hoodie / Áo khoác thời trang",
+    defaultPrice: 159000,
+    defaultOriginalPrice: 290000,
+  },
+  {
     keywords: ["áo", "ao", "quần", "quan", "váy", "vay", "đầm", "dam", "túi", "tui", "uniqlo"],
     imageUrl: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80",
     nameFallback: "Thời trang nam nữ cao cấp",
-    defaultPrice: 189000,
-    defaultOriginalPrice: 290000,
+    defaultPrice: 89000,
+    defaultOriginalPrice: 190000,
   },
   {
     keywords: ["giày", "giay", "dép", "dep", "sneaker", "nike"],
@@ -232,7 +246,11 @@ export function matchProductFromCatalog(rawUrl: string, deals: Deal[] = []): Cal
   return null;
 }
 
-export function resolveProductLocally(rawUrl: string, deals: Deal[] = []): CalculatedProduct {
+export function resolveProductLocally(
+  rawUrl: string,
+  deals: Deal[] = [],
+  titleHint?: string | null,
+): CalculatedProduct {
   const matched = matchProductFromCatalog(rawUrl, deals);
   if (matched) return matched;
 
@@ -247,25 +265,25 @@ export function resolveProductLocally(rawUrl: string, deals: Deal[] = []): Calcu
         : "Shopee";
 
   const slug = parseSlugFromUrl(trimmed);
-  const name = slug
+  const name = titleHint?.trim() || (slug
     ? slug.charAt(0).toUpperCase() + slug.slice(1)
-    : "Sản phẩm được hoàn tiền";
+    : "Sản phẩm được hoàn tiền");
 
-  const nameLower = name.toLowerCase();
+  const searchTarget = `${name} ${trimmed}`.toLowerCase();
   const categoryMatch = CATEGORY_FALLBACKS.find((cat) =>
-    cat.keywords.some((k) => nameLower.includes(k) || trimmed.toLowerCase().includes(k)),
+    cat.keywords.some((k) => searchTarget.includes(k.toLowerCase())),
   );
 
   const imageUrl =
     categoryMatch?.imageUrl ||
     "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=800&q=80";
 
-  const price = categoryMatch?.defaultPrice || 450000;
+  const price = categoryMatch?.defaultPrice || 189000;
   const originalPrice = categoryMatch?.defaultOriginalPrice || Math.round((price * 1.35) / 1000) * 1000;
   const cashback = cashbackFor(price, platform);
 
   return {
-    name: slug ? name : categoryMatch?.nameFallback || "Sản phẩm săn deal hoàn tiền",
+    name: titleHint?.trim() || (slug ? name : categoryMatch?.nameFallback || "Sản phẩm săn deal hoàn tiền"),
     imageUrl,
     price,
     originalPrice,
