@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   title: "DealHoàn — Săn deal & hoàn tiền",
   description: "Nền tảng săn deal và hoàn tiền cho người mua sắm thông minh.",
   icons: {
-    icon: "/brand/deal-hoan-logo.png",
-    apple: "/brand/deal-hoan-logo.png",
+    icon: "/icon.png",
+    apple: "/icon.png",
   },
 };
 

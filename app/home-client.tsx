@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { formatPrice, formatSold } from "@/lib/deals/format";
-import type { Deal, DealBundle, Coupon, CouponCategory } from "@/lib/deals";
-import { getDailyShopeeCoupons } from "@/lib/deals";
+import type { Deal, DealBundle, Coupon, CouponCategory } from "@/lib/deals/types";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+
 /**
  * Tabs over "Deal hot hôm nay". Every sort is backed by a field the marketplace
  * actually reports, so no tab implies data we do not have.
@@ -247,14 +247,12 @@ export default function HomeClient({
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [toast, setToast] = useState("");
 
-  const allCoupons =
-    initialVouchers && initialVouchers.length > 0
-      ? initialVouchers
-      : getDailyShopeeCoupons();
+  const allCoupons = initialVouchers && initialVouchers.length > 0 ? initialVouchers : [];
   const displayedCoupons =
     couponTab === "all"
       ? allCoupons
       : allCoupons.filter((c) => c.category === couponTab);
+
 
   const [seconds, setSeconds] = useState(() => {
     const endMs = flashEndTime && flashEndTime > Date.now() ? flashEndTime : getNextShopeeSlotEndMs();
@@ -402,7 +400,7 @@ export default function HomeClient({
         <div className="container nav">
           <a className="brand" href="/" title="DealHoàn — dán link, nhận hoàn tiền">
             <span className="brand-mark" aria-hidden="true">
-              <img src="/brand/deal-hoan-logo.png" alt="" />
+              <img src="/brand/deal-hoan-mark.png" alt="" />
             </span>
             <span className="brand-wordmark">
               <img src="/brand/deal-hoan-logo.png" alt="DealHoàn — Săn deal · Hoàn tiền" />

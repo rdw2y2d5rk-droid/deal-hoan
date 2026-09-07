@@ -3,11 +3,12 @@ import path from "node:path";
 import { hasSupabaseConfig, supabasePublishableKey, supabaseUrl } from "@/lib/supabase/config";
 import { createClient } from "@supabase/supabase-js";
 import type { Coupon } from "./types";
+import { getDailyShopeeCoupons } from "./coupons-static";
 
 const VOUCHER_CACHE_PATH = path.join(process.cwd(), "lib/deals/cache/shopee-vouchers.json");
 const FLASH_SALE_CACHE_PATH = path.join(process.cwd(), "lib/deals/cache/shopee-flash-sale.json");
 
-export function getDailyShopeeCoupons(): Coupon[] {
+function getLegacyDailyShopeeCoupons(): Coupon[] {
   const vnTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
   const dateStr = vnTime.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
 

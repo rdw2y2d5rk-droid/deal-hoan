@@ -142,11 +142,9 @@ header {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .brand-mark img {
-  position: absolute;
-  width: 117px;
-  max-width: none;
-  height: auto;
-  transform: translate(-39px, -8px);
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .brand-wordmark {
   width: 150px;
@@ -1896,8 +1894,8 @@ h2,
     height: 39px;
   }
   .brand-mark img {
-    width: 106px;
-    transform: translate(-35px, -7px);
+    width: 100%;
+    height: 100%;
   }
   .brand-wordmark {
     width: 135px;
