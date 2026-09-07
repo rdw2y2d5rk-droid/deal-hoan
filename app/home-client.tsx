@@ -7,6 +7,7 @@ import { formatPrice, formatSold } from "@/lib/deals/format";
 import type { Deal, DealBundle, Coupon, CouponCategory } from "@/lib/deals/types";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { buildShopeeAffiliateUrl, isShopeeUrl } from "@/lib/deals/affiliate";
+import { resolveProductLocally, type CalculatedProduct } from "@/lib/deals/resolve";
 
 /**
  * Tabs over "Deal hot hôm nay". Every sort is backed by a field the marketplace
@@ -64,6 +65,7 @@ function LazadaLogo({ color = "#0F4C81" }: { color?: string }) {
 
 function Receipt({
   platform = "Shopee Mall",
+  product,
   trackedLink,
   copied,
   onCopy,
@@ -71,48 +73,76 @@ function Receipt({
   onClear,
 }: {
   platform?: string;
+  product?: CalculatedProduct | null;
   trackedLink?: string;
   copied?: boolean;
   onCopy?: () => void;
   onBuy?: () => void;
   onClear?: () => void;
 }) {
+  const price = product?.price ?? 1540000;
+  const originalPrice = product?.originalPrice ?? 1990000;
+  const cashback = product?.cashback ?? 77000;
+  const actualCost = price - cashback;
+  const savingsPercent =
+    product?.savingsPercent ??
+    (originalPrice > actualCost
+      ? Math.round(((originalPrice - actualCost) / originalPrice) * 100)
+      : Math.round((cashback / (price || 1)) * 100));
+  const productName = product?.name || "Tai nghe Bluetooth chống ồn Sony WF-C710N";
+  const productImg = product?.imageUrl || null;
+  const displayPlatform = product?.platform || platform;
+
   return (
     <div className="receipt">
       <div className="receipt-head">
         <b>⚡ Hoàn tiền cho link của bạn</b>
-        <span>{platform}</span>
+        <span>{displayPlatform}</span>
       </div>
       <div className="receipt-product">
-        <div className="placeholder small">ảnh SP</div>
+        <div className="placeholder small">
+          {productImg ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={productImg}
+              alt={productName}
+              className="deal-image"
+              loading="lazy"
+            />
+          ) : (
+            "ảnh SP"
+          )}
+        </div>
         <div>
-          <b>Tai nghe Bluetooth chống ồn Sony WF-C710N</b>
+          <b>{productName}</b>
           <p>
-            {platform} · <em>còn 6 giờ</em>
+            {displayPlatform} {product?.seller ? `· ${product.seller}` : ""} · <em className="green">Hoàn đến {price > 0 ? (cashback / price * 100).toFixed(0) : "5"}%</em>
           </p>
         </div>
       </div>
       <div className="price-lines">
-        <div>
-          <span>Giá niêm yết</span>
-          <s>1.990.000đ</s>
-        </div>
+        {originalPrice > price && (
+          <div>
+            <span>Giá niêm yết</span>
+            <s>{formatPrice(originalPrice)}</s>
+          </div>
+        )}
         <hr />
         <div className="total">
           <b>Thanh toán hôm nay</b>
-          <strong>1.540.000đ</strong>
+          <strong>{formatPrice(price)}</strong>
         </div>
         <div>
           <span>
             Hoàn về ví <b className="green">sau 14–15 ngày</b>
           </span>
-          <b className="green">+77.000đ</b>
+          <b className="green">+{formatPrice(cashback)}</b>
         </div>
         <div className="actual-cost">
           <b>Chi phí thực sau khi nhận hoàn</b>
           <span>
-            <strong>1.463.000đ</strong>
-            <em>tiết kiệm 26%</em>
+            <strong>{formatPrice(actualCost)}</strong>
+            <em>tiết kiệm {savingsPercent}%</em>
           </span>
         </div>
       </div>
@@ -263,6 +293,7 @@ export default function HomeClient({
   const [refCopied, setRefCopied] = useState(false);
   const [trackedLink, setTrackedLink] = useState("");
   const [copiedTracked, setCopiedTracked] = useState(false);
+  const [calculatedProduct, setCalculatedProduct] = useState<CalculatedProduct | null>(null);
   const [buyOpen, setBuyOpen] = useState(false);
   const [buyDontShow, setBuyDontShow] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -354,9 +385,9 @@ export default function HomeClient({
     return url;
   };
 
-  const calc = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!link.trim()) {
+  const executeCalculation = async (targetUrl: string) => {
+    const trimmed = targetUrl.trim();
+    if (!trimmed) {
       setInputError(true);
       setTimeout(() => setInputError(false), 600);
       setTimeout(() => {
@@ -364,26 +395,55 @@ export default function HomeClient({
       }, 1000);
       return notify("Dán link sản phẩm trước đã nhé 🙂");
     }
+
     (document.activeElement as HTMLElement | null)?.blur();
     setBusy(true);
-    setTimeout(() => {
+
+    const subId = user ? `u_${user.id.slice(0, 8)}` : "calc";
+
+    // 1. Instant local resolution from current deals and sample products
+    const allAvailableDeals = [...hotDeals, ...flashDeals];
+    const localProduct = resolveProductLocally(trimmed, allAvailableDeals);
+    const localIsShopee = isShopeeUrl(trimmed);
+    const localTracked = localIsShopee
+      ? buildShopeeAffiliateUrl(trimmed, { subId })
+      : trimmed;
+
+    setCalculatedProduct(localProduct);
+    setResult(localProduct.platform);
+    setTrackedLink(localTracked);
+    setCopiedTracked(false);
+    setResultClosing(false);
+
+    // 2. Fetch live OpenGraph metadata / shortlink resolution from API
+    try {
+      const res = await fetch("/api/deals/resolve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: trimmed, subId }),
+        signal: AbortSignal.timeout(3000),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.product) {
+          setCalculatedProduct(data.product);
+          setResult(data.product.platform);
+          if (data.trackedLink) {
+            setTrackedLink(data.trackedLink);
+          }
+        }
+      }
+    } catch {
+      // Local resolution already in place as graceful fallback
+    } finally {
       setBusy(false);
-      setResultClosing(false);
-      const isShopee = isShopeeUrl(link);
-      const platform = link.toLowerCase().includes("tiktok")
-        ? "TikTok Shop"
-        : link.toLowerCase().includes("lazada")
-          ? "Lazada"
-          : "Shopee Mall";
-      setResult(platform);
-      const subId = user ? `u_${user.id.slice(0, 8)}` : "calc";
-      const finalLink = isShopee
-        ? buildShopeeAffiliateUrl(link, { subId })
-        : link;
-      setTrackedLink(finalLink);
-      setCopiedTracked(false);
-      notify("Đã tính xong — link đã gắn mã affiliate Shopee của bạn");
-    }, 400);
+      notify("Đã tính xong — đã gắn mã hoàn tiền & hiển thị giá thực");
+    }
+  };
+
+  const calc = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeCalculation(link);
   };
   const visibleHotDeals = [...hotDeals].sort(HOT_SORTERS[tab]);
   const tm = [
@@ -480,6 +540,7 @@ export default function HomeClient({
                   setResultClosing(true);
                   setTimeout(() => {
                     setResult("");
+                    setCalculatedProduct(null);
                     setResultClosing(false);
                   }, 420);
                 }
@@ -502,6 +563,7 @@ export default function HomeClient({
                     setResultClosing(true);
                     setTimeout(() => {
                       setResult("");
+                      setCalculatedProduct(null);
                       setResultClosing(false);
                     }, 420);
                   }
@@ -525,6 +587,7 @@ export default function HomeClient({
                 >
                   <Receipt
                     platform={result}
+                    product={calculatedProduct}
                     trackedLink={trackedLink}
                     copied={copiedTracked}
                     onCopy={() => {
@@ -554,6 +617,7 @@ export default function HomeClient({
                       setTimeout(() => {
                         setLink("");
                         setResult("");
+                        setCalculatedProduct(null);
                         setResultClosing(false);
                         linkInputRef.current?.focus();
                       }, 420);
@@ -565,7 +629,14 @@ export default function HomeClient({
           )}
           <div className="chips">
             <span className="chips-label">Hỗ trợ:</span>
-            <button onClick={() => setLink("https://shopee.vn/tai-nghe-sony")}>
+            <button
+              type="button"
+              onClick={() => {
+                const sample = "https://shopee.vn/tai-nghe-sony";
+                setLink(sample);
+                executeCalculation(sample);
+              }}
+            >
               <svg viewBox="0 0 24 24" fill="none">
                 <path
                   d="M6.6 8.4h10.8L18.5 19a1.8 1.8 0 0 1-1.8 2H7.3A1.8 1.8 0 0 1 5.5 19zM9 8.2V6.8a3 3 0 0 1 6 0v1.4"
@@ -577,7 +648,14 @@ export default function HomeClient({
               </svg>
               Shopee
             </button>
-            <button onClick={() => setLink("https://vt.tiktok.com/ZS8abcd/")}>
+            <button
+              type="button"
+              onClick={() => {
+                const sample = "https://vt.tiktok.com/ZS8abcd/";
+                setLink(sample);
+                executeCalculation(sample);
+              }}
+            >
               <svg viewBox="0 0 24 24" fill="none">
                 <path
                   d="M13.2 15.5V4.8c.7 1.9 2.4 3.5 4.6 3.8"
@@ -595,7 +673,14 @@ export default function HomeClient({
               </svg>
               TikTok Shop
             </button>
-            <button onClick={() => setLink("https://lazada.vn/products/sony")}>
+            <button
+              type="button"
+              onClick={() => {
+                const sample = "https://lazada.vn/products/sony";
+                setLink(sample);
+                executeCalculation(sample);
+              }}
+            >
               <LazadaLogo />
               Lazada
             </button>
