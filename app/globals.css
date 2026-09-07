@@ -407,6 +407,40 @@ h2,
 .calculator .primary:hover {
   background: #d73211;
 }
+.calculator .primary.is-calculating {
+  background: #ea580c;
+  box-shadow: 0 6px 16px rgba(234, 88, 12, 0.35);
+  cursor: wait;
+}
+.calculating-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.calc-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: calc-spin 0.6s linear infinite;
+  display: inline-block;
+}
+@keyframes calc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.calc-timer-tag {
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
 .receipt .primary:hover {
   background: #d73211;
 }

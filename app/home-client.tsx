@@ -293,6 +293,7 @@ export default function HomeClient({
     return Math.max(0, Math.floor((endMs - Date.now()) / 1000));
   });
   const [busy, setBusy] = useState(false);
+  const [calcTimer, setCalcTimer] = useState(0);
   const [inputError, setInputError] = useState(false);
   const [refCopied, setRefCopied] = useState(false);
   const [trackedLink, setTrackedLink] = useState("");
@@ -302,6 +303,18 @@ export default function HomeClient({
   const [buyDontShow, setBuyDontShow] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [authPending, setAuthPending] = useState(false);
+
+  useEffect(() => {
+    if (!busy) {
+      setCalcTimer(0);
+      return;
+    }
+    const start = Date.now();
+    const interval = setInterval(() => {
+      setCalcTimer((Date.now() - start) / 1000);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [busy]);
 
   useEffect(() => {
     const tick = () => {
@@ -601,8 +614,20 @@ export default function HomeClient({
                 ×
               </button>
             )}
-            <button className="primary">
-              {busy ? "⏳ Đang tính…" : "⚡ Tính hoàn tiền"}
+            <button
+              type="submit"
+              className={`primary ${busy ? "is-calculating" : ""}`}
+              disabled={busy}
+            >
+              {busy ? (
+                <span className="calculating-content">
+                  <span className="calc-spinner" aria-hidden="true" />
+                  <span>Đang tính…</span>
+                  <span className="calc-timer-tag">{calcTimer.toFixed(1)}s</span>
+                </span>
+              ) : (
+                "⚡ Tính hoàn tiền"
+              )}
             </button>
           </form>
           {result && (

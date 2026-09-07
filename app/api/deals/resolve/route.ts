@@ -34,90 +34,116 @@ export async function POST(request: NextRequest) {
     }
 
     const isShopee = isShopeeUrl(rawUrl);
+    const isDirectShopeeProduct = isShopee && (rawUrl.includes("/product/") || rawUrl.includes("-i."));
+
     let canonicalUrl = rawUrl;
     let ogTitle: string | null = null;
     let ogImage: string | null = null;
     let extractedPrice: number | null = null;
     let showDiscount: number | null = null;
 
-    // 1. Expand shortlinks or fetch OpenGraph metadata
-    try {
-      const fetchHeaders: HeadersInit = isShopee
-        ? {
-            "User-Agent":
-              "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
-            Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-          }
-        : {
-            "User-Agent":
-              "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
-            Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-            "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-          };
+    // 1. Concurrently trigger fast Shopee resolution if link already has product/item ID
+    const fastShopeeDirectPromise = isDirectShopeeProduct
+      ? lookupFastShopeeProduct(rawUrl).catch(() => null)
+      : Promise.resolve(null);
 
-      const res = await fetch(rawUrl, {
-        headers: fetchHeaders,
-        redirect: "follow",
-        signal: AbortSignal.timeout(4000),
-      });
+    // 2. Concurrently expand shortlink or fetch OpenGraph metadata with quick 1800ms timeout
+    const metadataPromise = (async () => {
+      try {
+        const fetchHeaders: HeadersInit = isShopee
+          ? {
+              "User-Agent":
+                "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+              Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+              "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+            }
+          : {
+              "User-Agent":
+                "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+              Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+              "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+            };
 
-      if (res.ok) {
-        canonicalUrl = res.url || rawUrl;
-        const html = await res.text();
+        const res = await fetch(rawUrl, {
+          headers: fetchHeaders,
+          redirect: "follow",
+          signal: AbortSignal.timeout(1800),
+        });
 
-        // Extract image
-        const img = extractMeta(html, "og:image") || extractMeta(html, "twitter:image");
-        if (img && img.startsWith("http")) {
-          ogImage = img;
+        if (res.ok) {
+          const finalFetchedUrl = res.url || rawUrl;
+          const html = await res.text();
+          return { finalFetchedUrl, html };
         }
+      } catch {}
+      return null;
+    })();
 
-        // Extract title
-        const title =
-          extractMeta(html, "og:title") ||
-          extractMeta(html, "twitter:title") ||
-          html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1];
-        if (title) {
-          const cleaned = title
-            .replace(/&amp;/g, "&")
-            .replace(/\s*[|–-]\s*(Shopee Việt Nam|Lazada\.vn|TikTok Shop|Tiki\.vn|Mua và Bán.*)$/i, "")
-            .trim();
-          if (cleaned.length > 3 && !cleaned.toLowerCase().startsWith("shopee việt nam")) {
-            ogTitle = cleaned;
-          }
-        }
+    // Await both tasks in parallel
+    const [fastShopeeDirect, metaResult] = await Promise.all([
+      fastShopeeDirectPromise,
+      metadataPromise,
+    ]);
 
-        // Extract discount percent from Shopee SSR (e.g. "show_discount": 35)
-        const discountMatch = html.match(/"show_discount":\s*(\d+)/i);
-        if (discountMatch) {
-          const parsedDisc = Number(discountMatch[1]);
-          if (parsedDisc > 0 && parsedDisc < 95) {
-            showDiscount = parsedDisc;
-          }
-        }
+    if (metaResult) {
+      canonicalUrl = metaResult.finalFetchedUrl;
+      const html = metaResult.html;
 
-        // Extract price if exposed in OpenGraph
-        const rawPriceStr =
-          extractMeta(html, "product:price:amount") ||
-          extractMeta(html, "og:price:amount") ||
-          extractMeta(html, "twitter:data1");
-        if (rawPriceStr) {
-          const parsed = Number(rawPriceStr.replace(/[,.]/g, ""));
-          if (Number.isFinite(parsed) && parsed > 1000) {
-            extractedPrice = parsed;
-          }
+      // Extract image
+      const img = extractMeta(html, "og:image") || extractMeta(html, "twitter:image");
+      if (img && img.startsWith("http")) {
+        ogImage = img;
+      }
+
+      // Extract title
+      const title =
+        extractMeta(html, "og:title") ||
+        extractMeta(html, "twitter:title") ||
+        html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1];
+      if (title) {
+        const cleaned = title
+          .replace(/&amp;/g, "&")
+          .replace(/\s*[|–-]\s*(Shopee Việt Nam|Lazada\.vn|TikTok Shop|Tiki\.vn|Mua và Bán.*)$/i, "")
+          .trim();
+        if (cleaned.length > 3 && !cleaned.toLowerCase().startsWith("shopee việt nam")) {
+          ogTitle = cleaned;
         }
       }
-    } catch {
-      // Ignore network / timeout errors and proceed to multi-source catalog resolution
+
+      // Extract discount percent from Shopee SSR
+      const discountMatch = html.match(/"show_discount":\s*(\d+)/i);
+      if (discountMatch) {
+        const parsedDisc = Number(discountMatch[1]);
+        if (parsedDisc > 0 && parsedDisc < 95) {
+          showDiscount = parsedDisc;
+        }
+      }
+
+      // Extract price if exposed in OpenGraph
+      const rawPriceStr =
+        extractMeta(html, "product:price:amount") ||
+        extractMeta(html, "og:price:amount") ||
+        extractMeta(html, "twitter:data1");
+      if (rawPriceStr) {
+        const parsed = Number(rawPriceStr.replace(/[,.]/g, ""));
+        if (Number.isFinite(parsed) && parsed > 1000) {
+          extractedPrice = parsed;
+        }
+      }
     }
 
     const isCurrentShopee = isShopeeUrl(canonicalUrl) || isShopee;
 
-    // 2. Query high-speed verified Shopee price (1-hour cache, browser disguised, no token needed)
-    const fastShopeeProduct = isCurrentShopee
-      ? await lookupFastShopeeProduct(canonicalUrl, showDiscount).catch(() => null)
-      : null;
+    // If fastShopeeDirect was already resolved, update original price if discount was detected
+    let fastShopeeProduct = fastShopeeDirect;
+    if (fastShopeeProduct && showDiscount && showDiscount > 0) {
+      const realOrig = Math.round((fastShopeeProduct.price / (1 - showDiscount / 100)) / 1000) * 1000;
+      if (realOrig > fastShopeeProduct.price) {
+        fastShopeeProduct = { ...fastShopeeProduct, originalPrice: realOrig };
+      }
+    } else if (!fastShopeeProduct && isCurrentShopee) {
+      fastShopeeProduct = await lookupFastShopeeProduct(canonicalUrl, showDiscount).catch(() => null);
+    }
 
     // 3. Query AccessTrade product datafeed (exact SKU match for real price & CDN image)
     const atProduct = !fastShopeeProduct
