@@ -188,8 +188,8 @@ export const SEED_HOT: Deal[] = [
   {
     "id": "seed-hot-1",
     "name": "Nồi chiên không dầu Philips 6.2L NA221",
-    "platform": "Lazada",
-    "seller": "Lazada",
+    "platform": "Shopee Mall",
+    "seller": "Shopee Mall",
     "price": 1890000,
     "originalPrice": 2790000,
     "discountPercent": 32,
@@ -252,8 +252,8 @@ export const SEED_HOT: Deal[] = [
   {
     "id": "seed-hot-5",
     "name": "Bàn phím cơ Keychron K8 Pro hotswap",
-    "platform": "Lazada",
-    "seller": "Lazada",
+    "platform": "Shopee Mall",
+    "seller": "Shopee Mall",
     "price": 1990000,
     "originalPrice": 2850000,
     "discountPercent": 30,

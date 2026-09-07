@@ -22,8 +22,9 @@ const PROVIDERS: DealProvider[] = [
   shopeeProvider,
   shopeeScrapeProvider,
   accessTradeProvider,
-  lazadaProvider,
+  ...(process.env.ENABLE_LAZADA_FALLBACK === "true" ? [lazadaProvider] : []),
 ];
+
 
 /** "Deal chớp nhoáng" — the steepest markdowns, deepest first. */
 function pickFlash(deals: Deal[]) {
