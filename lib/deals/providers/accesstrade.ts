@@ -34,6 +34,8 @@ type FeedItem = {
   aff_link?: string | null;
   url?: string | null;
   merchant?: string | null;
+  shop_name?: string | null;
+  sku?: string | number;
   /** Publisher commission, percent, when the campaign exposes it. */
   commission_rate?: string | number;
 };
@@ -157,3 +159,90 @@ export const accessTradeProvider: DealProvider = {
     return [...byId.values()];
   },
 };
+
+export type AccessTradeProductResult = {
+  name: string;
+  price: number;
+  originalPrice: number;
+  imageUrl: string | null;
+  platform: Platform;
+  seller?: string;
+  isVerifiedPrice: boolean;
+};
+
+/**
+ * Queries AccessTrade product datafeed by SKU or product ID.
+ * Returns verified platform price, product name, and CDN image if present in the datafeed.
+ */
+export async function lookupAccessTradeProduct(
+  rawUrl: string,
+): Promise<AccessTradeProductResult | null> {
+  const authToken = token();
+  if (!authToken) return null;
+
+  try {
+    const parsed = new URL(rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`);
+    const host = parsed.hostname.toLowerCase();
+
+    let domain = "";
+    let sku = "";
+
+    if (host.includes("shopee.vn") || host.includes("shp.ee")) {
+      domain = "shopee.vn";
+      const match1 = parsed.pathname.match(/\/product\/\d+\/(\d+)/i);
+      const match2 = parsed.pathname.match(/-i\.\d+\.(\d+)/i);
+      const match3 = parsed.pathname.match(/\/product\/(\d+)/i);
+      sku = match1?.[1] || match2?.[1] || match3?.[1] || "";
+    } else if (host.includes("lazada.vn")) {
+      domain = "lazada.vn";
+      const matchS = parsed.pathname.match(/-s(\d+)/i);
+      const matchI = parsed.pathname.match(/-i(\d+)/i);
+      sku = matchS?.[1] || matchI?.[1] || "";
+    } else if (host.includes("tiki.vn")) {
+      domain = "tiki.vn";
+      const matchP = parsed.pathname.match(/-p(\d+)/i);
+      sku = matchP?.[1] || "";
+    }
+
+    if (!sku || !domain) return null;
+
+    const queryUrl = `${DATAFEED_URL}?domain=${encodeURIComponent(domain)}&sku=${encodeURIComponent(sku)}&limit=1`;
+    const res = await fetch(queryUrl, {
+      headers: {
+        Authorization: `Token ${authToken}`,
+        Accept: "application/json",
+      },
+      signal: AbortSignal.timeout(3500),
+      cache: "no-store",
+    });
+
+    if (!res.ok) return null;
+    const body = (await res.json()) as { data?: FeedItem[]; total?: number };
+    const item = body.data?.[0];
+    if (!item || !item.name) return null;
+
+    const rawPrice = num(item.price);
+    const rawDiscount = num(item.discount);
+    // In AccessTrade feeds:
+    // When a product has a discount, discount is the discounted price, price is the original price.
+    // If discount is 0 or equal to price, the selling price is rawPrice.
+    const salePrice = rawDiscount > 0 && rawDiscount < rawPrice ? rawDiscount : rawPrice;
+    const originalPrice = rawPrice > salePrice ? rawPrice : Math.round((salePrice * 1.25) / 1000) * 1000;
+
+    const platform: Platform = domain.includes("lazada")
+      ? "Lazada"
+      : "Shopee";
+
+    return {
+      name: item.name.trim(),
+      price: salePrice,
+      originalPrice,
+      imageUrl: item.image || null,
+      platform,
+      seller: item.shop_name || undefined,
+      isVerifiedPrice: true,
+    };
+  } catch {
+    return null;
+  }
+}

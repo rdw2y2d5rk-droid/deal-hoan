@@ -13,6 +13,8 @@ export type CalculatedProduct = {
   trackedLink?: string;
   discountPercent?: number;
   savingsPercent?: number;
+  isVerifiedPrice?: boolean;
+  priceType?: "exact" | "estimated" | "user_input";
 };
 
 export const SAMPLE_CHIP_PRODUCTS: Record<string, CalculatedProduct> = {
