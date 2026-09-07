@@ -7,6 +7,8 @@ export type FastShopeeProduct = {
   imageUrl: string | null;
   seller?: string;
   isVerifiedPrice: boolean;
+  commission?: number;
+  cap?: number;
 };
 
 // In-memory cache with 10-minute TTL
@@ -121,6 +123,11 @@ export async function lookupFastShopeeProduct(
       return null;
     }
 
+    const rawCommission = Number(info.commission ?? info.shopeeComFinal);
+    const rawCap = Number(info.cap);
+    const commission = Number.isFinite(rawCommission) && rawCommission > 0 ? rawCommission : undefined;
+    const cap = Number.isFinite(rawCap) && rawCap > 0 ? rawCap : undefined;
+
     // Calculate real list/original price:
     // If we have a discount percentage (e.g. 35% from Shopee SSR), reverse calculate the original price
     let originalPrice = price;
@@ -137,6 +144,8 @@ export async function lookupFastShopeeProduct(
       imageUrl: info.imageUrl ? String(info.imageUrl).trim() : null,
       seller: info.shopName ? String(info.shopName).trim() : undefined,
       isVerifiedPrice: true,
+      commission,
+      cap,
     };
 
     setInCache(cacheKey, result);

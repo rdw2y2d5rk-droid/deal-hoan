@@ -187,14 +187,18 @@ export async function POST(request: NextRequest) {
         ? baseProduct.originalPrice
         : Math.round((finalPrice * 1.28) / 1000) * 1000);
 
-    const finalCashback = cashbackFor(finalPrice, finalPlatform);
+    const hasRealCommission = Boolean(fastShopeeProduct?.commission && fastShopeeProduct.commission > 0);
+    const finalCashback = hasRealCommission
+      ? Math.round(fastShopeeProduct!.commission!)
+      : cashbackFor(finalPrice, finalPlatform);
+
     const discountPercent =
       finalOriginalPrice > finalPrice
         ? Math.round(((finalOriginalPrice - finalPrice) / finalOriginalPrice) * 100)
         : 0;
     const savingsPercent =
       finalPrice > 0
-        ? Math.round((finalCashback / finalPrice) * 100)
+        ? Math.max(1, Math.round((finalCashback / finalPrice) * 100))
         : 5;
 
     // NOTE ON COMMISSION ATTRIBUTION:
@@ -225,6 +229,8 @@ export async function POST(request: NextRequest) {
       savingsPercent,
       isVerifiedPrice,
       priceType,
+      cap: fastShopeeProduct?.cap,
+      isExactCashback: hasRealCommission,
     };
 
     return NextResponse.json({

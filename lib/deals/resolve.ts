@@ -15,6 +15,8 @@ export type CalculatedProduct = {
   savingsPercent?: number;
   isVerifiedPrice?: boolean;
   priceType?: "exact" | "estimated" | "user_input";
+  cap?: number;
+  isExactCashback?: boolean;
 };
 
 export const SAMPLE_CHIP_PRODUCTS: Record<string, CalculatedProduct> = {

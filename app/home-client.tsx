@@ -136,7 +136,8 @@ function Receipt({
         </div>
         <div>
           <span>
-            Hoàn về ví <b className="green">sau 14–15 ngày</b>
+            {product?.isExactCashback ? "Hoàn tiền đến" : "Hoàn về ví"}{" "}
+            <b className="green">sau 14–15 ngày</b>
           </span>
           <b className="green">+{formatPrice(cashback)}</b>
         </div>
