@@ -9,8 +9,8 @@ export type FastShopeeProduct = {
   isVerifiedPrice: boolean;
 };
 
-// In-memory cache with 1-hour TTL as requested
-const CACHE_TTL_MS = 60 * 60 * 1000;
+// In-memory cache with 10-minute TTL
+const CACHE_TTL_MS = 10 * 60 * 1000;
 
 type CacheEntry = {
   data: FastShopeeProduct;
