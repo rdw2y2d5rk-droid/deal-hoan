@@ -18,6 +18,17 @@ html {
   scroll-behavior: smooth;
   overflow-x: hidden;
   max-width: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+/* Prevent iOS Safari from auto-zooming on input focus (requires font-size >= 16px) */
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 body {
   margin: 0;
@@ -2167,9 +2178,10 @@ h2,
   .calculator input {
     flex: 1 1 auto;
     min-width: 0;
-    height: 38px;
-    font-size: 13.5px;
-    padding: 0 6px;
+    height: 40px;
+    font-size: 16px !important;
+    padding: 0 8px;
+    text-overflow: ellipsis;
   }
   .calculator-clear {
     width: 28px;
