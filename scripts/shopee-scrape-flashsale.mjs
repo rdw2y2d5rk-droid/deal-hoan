@@ -6,7 +6,6 @@
 // và lấy danh sách sản phẩm chi tiết của từng khung giờ.
 // Không cần đăng nhập, không bị lỗi 90309999.
 
-import { chromium } from "playwright";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -37,194 +36,139 @@ if (existsSync(envPath)) {
 
 const ITEMS_PER_SESSION = 36;
 
+const SHOPEE_HEADERS = {
+  accept: "application/json",
+  "x-api-source": "pc",
+  referer: "https://shopee.vn/flash_sale",
+  "user-agent":
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+};
+
 export async function fetchShopeeFlashSale({ limitPerSession = ITEMS_PER_SESSION } = {}) {
-  console.log("⚡ Khởi động trình duyệt cào Flash Sale Shopee...");
+  console.log("⚡ Đang lấy danh sách các khung giờ Flash Sale từ Shopee...");
 
-  const browser = await chromium.launch({
-    headless: true,
-    ignoreDefaultArgs: ["--enable-automation"],
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-blink-features=AutomationControlled",
-      "--window-size=1440,900",
-    ],
-  });
+  const sessionsRes = await fetch(
+    "https://shopee.vn/api/v4/flash_sale/get_all_sessions?tracker_info_version=1",
+    { headers: SHOPEE_HEADERS }
+  );
 
-  try {
-    const context = await browser.newContext({
-      userAgent:
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-      viewport: { width: 1440, height: 900 },
-      locale: "vi-VN",
-      extraHTTPHeaders: {
-        "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-      },
-    });
+  if (!sessionsRes.ok) {
+    throw new Error(`Shopee get_all_sessions HTTP ${sessionsRes.status}`);
+  }
 
-    await context.addInitScript(() => {
-      Object.defineProperty(navigator, "webdriver", {
-        get: () => undefined,
-      });
-      // @ts-ignore
-      window.chrome = { runtime: {} };
-      Object.defineProperty(navigator, "plugins", {
-        get: () => [1, 2, 3, 4, 5],
-      });
-      Object.defineProperty(navigator, "languages", {
-        get: () => ["vi-VN", "vi", "en-US", "en"],
-      });
-    });
+  const sessionsJson = await sessionsRes.json();
+  const rawSessions = sessionsJson.data?.sessions || [];
+  if (!rawSessions.length) {
+    console.warn("Shopee API returned no sessions:", sessionsJson);
+    return [];
+  }
 
-    const page = await context.newPage();
+  const now = Math.floor(Date.now() / 1000);
+  const results = [];
 
-    console.log("👉 Đang tải trang https://shopee.vn/flash_sale...");
-    await page.goto("https://shopee.vn/flash_sale", {
-      waitUntil: "domcontentloaded",
-      timeout: 30000,
-    });
+  for (const s of rawSessions) {
+    const promotionId = s.promotionid;
+    const startTime = s.start_time;
+    const endTime = s.end_time;
+    const isOngoing = now >= startTime && now < endTime;
 
-    // Chờ 3 giây để Shopee khởi tạo session và chữ ký bảo mật
-    await page.waitForTimeout(3000);
+    const startDate = new Date(startTime * 1000);
+    const endDate = new Date(endTime * 1000);
 
-    console.log("📦 Đang trích xuất các khung giờ Flash Sale và sản phẩm...");
+    const formatHour = (d) => {
+      const h = String(d.getHours()).padStart(2, "0");
+      const m = String(d.getMinutes()).padStart(2, "0");
+      return `${h}:${m}`;
+    };
 
-    const data = await page.evaluate(async (limit) => {
-      // 1. Lấy danh sách tất cả các sessions (khung giờ)
-      const sessionsRes = await fetch(
-        "https://shopee.vn/api/v4/flash_sale/get_all_sessions?tracker_info_version=1",
-        {
-          headers: {
-            accept: "application/json",
-            "x-api-source": "pc",
-            referer: "https://shopee.vn/flash_sale",
-          },
-        }
+    const timeSlot = `${formatHour(startDate)} - ${formatHour(endDate)}`;
+
+    let items = [];
+    try {
+      const itemidsRes = await fetch(
+        `https://shopee.vn/api/v4/flash_sale/get_all_itemids?need_personalize=true&promotionid=${promotionId}`,
+        { headers: SHOPEE_HEADERS }
       );
-      const sessionsJson = await sessionsRes.json();
-      if (sessionsJson.error) {
-        console.warn("Shopee API returned error:", sessionsJson.error);
-      }
-      const rawSessions = sessionsJson.data?.sessions || [];
+      const itemidsJson = await itemidsRes.json();
+      const briefList = itemidsJson.data?.item_brief_list || [];
+      const targetIds = briefList.slice(0, limitPerSession).map((x) => x.itemid);
 
-      const now = Math.floor(Date.now() / 1000);
-      const results = [];
-
-      for (const s of rawSessions) {
-        const promotionId = s.promotionid;
-        const startTime = s.start_time;
-        const endTime = s.end_time;
-        const isOngoing = now >= startTime && now < endTime;
-
-        const startDate = new Date(startTime * 1000);
-        const endDate = new Date(endTime * 1000);
-
-        const formatHour = (d) => {
-          const h = String(d.getHours()).padStart(2, "0");
-          const m = String(d.getMinutes()).padStart(2, "0");
-          return `${h}:${m}`;
-        };
-
-        const timeSlot = `${formatHour(startDate)} - ${formatHour(endDate)}`;
-
-        // 2. Lấy danh sách ID sản phẩm của khung giờ này
-        let items = [];
-        try {
-          const itemidsRes = await fetch(
-            `https://shopee.vn/api/v4/flash_sale/get_all_itemids?need_personalize=true&promotionid=${promotionId}`,
-            {
-              headers: {
-                accept: "application/json",
-                "x-api-source": "pc",
-              },
-            }
-          );
-          const itemidsJson = await itemidsRes.json();
-          const briefList = itemidsJson.data?.item_brief_list || [];
-          const targetIds = briefList.slice(0, limit).map((x) => x.itemid);
-
-          if (targetIds.length > 0) {
-            // 3. Lấy thông tin chi tiết từng sản phẩm theo lô
-            const batchRes = await fetch(
-              "https://shopee.vn/api/v4/flash_sale/flash_sale_batch_get_items",
-              {
-                method: "POST",
-                headers: {
-                  "content-type": "application/json",
-                  accept: "application/json",
-                  "x-api-source": "pc",
-                },
-                body: JSON.stringify({
-                  promotionid: promotionId,
-                  categoryid: 0,
-                  itemids: targetIds,
-                  limit: targetIds.length,
-                  with_dp_items: true,
-                }),
-              }
-            );
-            const batchJson = await batchRes.json();
-            const rawItems = batchJson.data?.items || [];
-
-            items = rawItems.map((item) => {
-              const price = Math.round((item.price || 0) / 100000);
-              const priceBeforeDiscount = Math.round(
-                (item.price_before_discount || 0) / 100000
-              );
-              const flashSold = item.flash_sale_stock ? Math.max(0, item.flash_sale_stock - (item.stock || 0)) : 0;
-              const sold = flashSold > 0 ? flashSold : ((Number(item.itemid) % 150) + 18);
-              const ratingStar = 4.6 + ((Number(item.itemid) % 5) * 0.1);
-              const ratingCount = ((Number(item.itemid) % 600) + 60);
-              const discount =
-                item.raw_discount ||
-                (priceBeforeDiscount > price && price > 0
-                  ? Math.round(((priceBeforeDiscount - price) / priceBeforeDiscount) * 100)
-                  : 15);
-
-              return {
-                itemId: item.itemid,
-                shopId: item.shopid,
-                name: item.name,
-                price: price > 0 ? price : priceBeforeDiscount,
-                flashSalePrice: price > 0 ? price : null,
-                priceBeforeDiscount: priceBeforeDiscount,
-                discountPercent: discount,
-                image: item.image
-                  ? `https://down-vn.img.susercontent.com/file/${item.image}`
-                  : null,
-                productUrl: `https://shopee.vn/product/${item.shopid}/${item.itemid}`,
-                stock: item.stock || 0,
-                flashSaleStock: item.flash_sale_stock || 0,
-                isMall: Boolean(item.brand_sale_brand_custom_logo),
-                ratingStar,
-                ratingCount,
-                historicalSold: sold,
-              };
-            });
+      if (targetIds.length > 0) {
+        const batchRes = await fetch(
+          "https://shopee.vn/api/v4/flash_sale/flash_sale_batch_get_items",
+          {
+            method: "POST",
+            headers: {
+              ...SHOPEE_HEADERS,
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              promotionid: promotionId,
+              categoryid: 0,
+              itemids: targetIds,
+              limit: targetIds.length,
+              with_dp_items: true,
+            }),
           }
-        } catch (err) {
-          console.error("Lỗi khi lấy items cho promotion", promotionId, err);
-        }
+        );
+        const batchJson = await batchRes.json();
+        const rawItems = batchJson.data?.items || [];
 
-        results.push({
-          promotionId,
-          timeSlot,
-          startTime,
-          endTime,
-          isOngoing,
-          statusText: isOngoing ? "Đang diễn ra" : now < startTime ? "Sắp diễn ra" : "Đã kết thúc",
-          itemsCount: items.length,
-          items,
+        items = rawItems.map((item) => {
+          const price = Math.round((item.price || 0) / 100000);
+          const priceBeforeDiscount = Math.round(
+            (item.price_before_discount || 0) / 100000
+          );
+          const flashSold = item.flash_sale_stock
+            ? Math.max(0, item.flash_sale_stock - (item.stock || 0))
+            : 0;
+          const sold = flashSold > 0 ? flashSold : (Number(item.itemid) % 150) + 18;
+          const ratingStar = 4.6 + (Number(item.itemid) % 5) * 0.1;
+          const ratingCount = (Number(item.itemid) % 600) + 60;
+          const discount =
+            item.raw_discount ||
+            (priceBeforeDiscount > price && price > 0
+              ? Math.round(((priceBeforeDiscount - price) / priceBeforeDiscount) * 100)
+              : 15);
+
+          return {
+            itemId: item.itemid,
+            shopId: item.shopid,
+            name: item.name,
+            price: price > 0 ? price : priceBeforeDiscount,
+            flashSalePrice: price > 0 ? price : null,
+            priceBeforeDiscount: priceBeforeDiscount,
+            discountPercent: discount,
+            image: item.image
+              ? `https://down-vn.img.susercontent.com/file/${item.image}`
+              : null,
+            productUrl: `https://shopee.vn/product/${item.shopid}/${item.itemid}`,
+            stock: item.stock || 0,
+            flashSaleStock: item.flash_sale_stock || 0,
+            isMall: Boolean(item.brand_sale_brand_custom_logo),
+            ratingStar,
+            ratingCount,
+            historicalSold: sold,
+          };
         });
       }
+    } catch (err) {
+      console.error("Lỗi khi lấy items cho promotion", promotionId, err);
+    }
 
-      return results;
-    }, limitPerSession);
-
-    return data;
-  } finally {
-    await browser.close();
+    results.push({
+      promotionId,
+      timeSlot,
+      startTime,
+      endTime,
+      isOngoing,
+      statusText: isOngoing ? "Đang diễn ra" : now < startTime ? "Sắp diễn ra" : "Đã kết thúc",
+      itemsCount: items.length,
+      items,
+    });
   }
+
+  return results;
 }
 
 // Chạy trực tiếp qua command line

@@ -93,17 +93,52 @@ async function readFromSupabase() {
   }
 }
 
-async function readCache(): Promise<CacheFile | null> {
-  // 1. Ưu tiên đọc từ Supabase Cloud (khi deploy trên Vercel)
+async function loadFlashData() {
   let flashData = await readFromSupabase();
-
-  // 2. Nếu không có Supabase, đọc từ file local
   if (!flashData) {
     try {
       const rawFlash = await readFile(FLASH_SALE_CACHE_PATH, "utf-8");
       flashData = JSON.parse(rawFlash);
     } catch {}
   }
+
+  const nowSec = Math.floor(Date.now() / 1000);
+  const cacheAge = flashData?.scrapedAt ? Date.now() - new Date(flashData.scrapedAt).getTime() : Infinity;
+  const sessions = flashData?.sessions || [];
+  const lastSessionEnd = sessions.length ? sessions[sessions.length - 1]?.endTime || 0 : 0;
+  const isStale = cacheAge > 2 * 60 * 60 * 1000 || (lastSessionEnd > 0 && nowSec > lastSessionEnd);
+
+  // Tự động kéo dữ liệu mới khi cache rỗng hoặc đã cũ (> 2 giờ hoặc các phiên trước đã kết thúc)
+  if (!flashData || isStale) {
+    try {
+      const { fetchShopeeFlashSale } = await import("@/scripts/shopee-scrape-flashsale.mjs");
+      const freshSessions = await fetchShopeeFlashSale();
+      if (freshSessions?.length) {
+        flashData = {
+          scrapedAt: new Date().toISOString(),
+          totalSessions: freshSessions.length,
+          sessions: freshSessions,
+        };
+        // Đồng bộ lên Supabase Cloud ngầm
+        if (hasSupabaseConfig && supabaseUrl && supabasePublishableKey) {
+          const sb = createClient(supabaseUrl, supabasePublishableKey);
+          Promise.resolve(
+            sb
+              .from("flash_sale_cache")
+              .upsert({ id: "latest", data: flashData, updated_at: new Date().toISOString() })
+          ).catch(() => {});
+        }
+      }
+    } catch (err) {
+      console.warn("[deals] Tự động tải Flash Sale mới thất bại, dùng cache hiện có:", err);
+    }
+  }
+
+  return flashData;
+}
+
+async function readCache(): Promise<CacheFile | null> {
+  const flashData = await loadFlashData();
 
   if (flashData?.sessions?.length) {
     const nowSec = Math.floor(Date.now() / 1000);
@@ -210,13 +245,7 @@ export async function getActiveFlashSaleSession(): Promise<{
   endTime: number;
   isOngoing: boolean;
 } | null> {
-  let flashData = await readFromSupabase();
-  if (!flashData) {
-    try {
-      const rawFlash = await readFile(FLASH_SALE_CACHE_PATH, "utf-8");
-      flashData = JSON.parse(rawFlash);
-    } catch {}
-  }
+  const flashData = await loadFlashData();
 
   if (flashData?.sessions?.length) {
     const nowSec = Math.floor(Date.now() / 1000);

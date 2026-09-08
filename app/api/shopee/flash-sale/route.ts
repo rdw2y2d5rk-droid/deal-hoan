@@ -56,31 +56,48 @@ async function runBackgroundScrape(): Promise<CachePayload | null> {
       sessions,
     };
 
-    await mkdir(CACHE_DIR, { recursive: true });
-    await writeFile(CACHE_PATH, JSON.stringify(payload, null, 2));
+    try {
+      await mkdir(CACHE_DIR, { recursive: true });
+      await writeFile(CACHE_PATH, JSON.stringify(payload, null, 2));
 
-    // Cập nhật cho trang chủ mục "Deal chớp nhoáng"
-    const ongoingSession = sessions.find((s) => s.isOngoing) || sessions[0];
-    if (ongoingSession && ongoingSession.items.length > 0) {
-      const homeProducts = ongoingSession.items.map((p) => ({
-        itemId: p.itemId,
-        shopId: p.shopId,
-        name: p.name,
-        price: p.price,
-        priceBeforeDiscount: p.priceBeforeDiscount,
-        rawDiscount: p.discountPercent,
-        historicalSold: p.historicalSold,
-        ratingStar: p.ratingStar,
-        ratingCount: p.ratingCount,
-        image: p.image,
-        isMall: p.isMall,
-        productUrl: p.productUrl,
-      }));
+      // Cập nhật cho trang chủ mục "Deal chớp nhoáng"
+      const ongoingSession = sessions.find((s) => s.isOngoing) || sessions[0];
+      if (ongoingSession && ongoingSession.items.length > 0) {
+        const homeProducts = ongoingSession.items.map((p) => ({
+          itemId: p.itemId,
+          shopId: p.shopId,
+          name: p.name,
+          price: p.price,
+          priceBeforeDiscount: p.priceBeforeDiscount,
+          rawDiscount: p.discountPercent,
+          historicalSold: p.historicalSold,
+          ratingStar: p.ratingStar,
+          ratingCount: p.ratingCount,
+          image: p.image,
+          isMall: p.isMall,
+          productUrl: p.productUrl,
+        }));
 
-      await writeFile(
-        SCRAPED_CACHE_PATH,
-        JSON.stringify({ scrapedAt: new Date().toISOString(), products: homeProducts }, null, 2)
-      );
+        await writeFile(
+          SCRAPED_CACHE_PATH,
+          JSON.stringify({ scrapedAt: new Date().toISOString(), products: homeProducts }, null, 2)
+        );
+      }
+    } catch (fsErr) {
+      console.warn("[Background Worker] Không thể ghi file cục bộ (có thể do môi trường serverless):", fsErr);
+    }
+
+    // Đồng bộ lên Supabase Cloud
+    if (sessions.length > 0 && hasSupabaseConfig && supabaseUrl && supabasePublishableKey) {
+      try {
+        const sb = createClient(supabaseUrl, supabasePublishableKey);
+        await sb
+          .from("flash_sale_cache")
+          .upsert({ id: "latest", data: payload, updated_at: new Date().toISOString() });
+        console.log("[Background Worker] Đã đồng bộ lên Supabase Cloud!");
+      } catch (sbErr) {
+        console.warn("[Background Worker] Lỗi đồng bộ Supabase:", sbErr);
+      }
     }
 
     console.log("[Background Worker] Hoàn tất cập nhật Flash Sale ngầm!");
