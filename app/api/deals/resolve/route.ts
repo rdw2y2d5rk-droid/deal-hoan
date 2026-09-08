@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildShopeeAffiliateUrl, cleanShopeeUrl, isShopeeUrl, buildCustomShortUrl } from "@/lib/deals/affiliate";
+import {
+  buildShopeeAffiliateUrl,
+  cleanShopeeUrl,
+  isShopeeUrl,
+  buildCustomShortUrl,
+  extractUrlFromText,
+} from "@/lib/deals/affiliate";
 import { cashbackFor } from "@/lib/deals/score";
 import type { Platform } from "@/lib/deals/types";
 import { resolveProductLocally, type CalculatedProduct } from "@/lib/deals/resolve";
@@ -26,7 +32,8 @@ function extractMeta(html: string, propertyOrName: string): string | null {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const rawUrl = body.url ? String(body.url).trim() : "";
+    const rawInput = body.url ? String(body.url).trim() : "";
+    const rawUrl = extractUrlFromText(rawInput);
     const subId = body.subId ? String(body.subId).trim() : "dealhoan";
 
     if (!rawUrl) {
@@ -34,7 +41,6 @@ export async function POST(request: NextRequest) {
     }
 
     const isShopee = isShopeeUrl(rawUrl);
-    const isDirectShopeeProduct = isShopee && (rawUrl.includes("/product/") || rawUrl.includes("-i."));
 
     let canonicalUrl = rawUrl;
     let ogTitle: string | null = null;
@@ -42,8 +48,8 @@ export async function POST(request: NextRequest) {
     let extractedPrice: number | null = null;
     let showDiscount: number | null = null;
 
-    // 1. Concurrently trigger fast Shopee resolution if link already has product/item ID
-    const fastShopeeDirectPromise = isDirectShopeeProduct
+    // 1. Concurrently trigger fast Shopee resolution for any Shopee link (direct or shortlink)
+    const fastShopeeDirectPromise = isShopee
       ? lookupFastShopeeProduct(rawUrl).catch(() => null)
       : Promise.resolve(null);
 
@@ -145,6 +151,11 @@ export async function POST(request: NextRequest) {
       fastShopeeProduct = await lookupFastShopeeProduct(canonicalUrl, showDiscount).catch(() => null);
     }
 
+    // Canonicalize link if fastShopee returned the direct product URL
+    if (fastShopeeProduct?.productLink) {
+      canonicalUrl = fastShopeeProduct.productLink;
+    }
+
     // 3. Query AccessTrade product datafeed (exact SKU match for real price & CDN image)
     const atProduct = !fastShopeeProduct
       ? await lookupAccessTradeProduct(canonicalUrl).catch(() => null)
@@ -214,6 +225,8 @@ export async function POST(request: NextRequest) {
     const trackedLink = buildCustomShortUrl(canonicalUrl, {
       baseUrl: siteBase,
       subId,
+      shopId: fastShopeeProduct?.shopId,
+      itemId: fastShopeeProduct?.itemId,
     });
 
     const resolvedProduct: CalculatedProduct = {

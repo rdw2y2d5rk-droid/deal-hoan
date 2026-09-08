@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildShopeeAffiliateUrl, isShopeeUrl } from "@/lib/deals/affiliate";
+import { buildShopeeAffiliateUrl, isShopeeUrl, cleanShopeeUrl } from "@/lib/deals/affiliate";
+import { lookupFastShopeeProduct } from "@/lib/deals/providers/fast-shopee";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,19 @@ export async function GET(request: NextRequest) {
 
   // If it's Shopee, convert to official Shopee Affiliate tracking link
   if (isShopeeUrl(targetUrl)) {
-    const affiliateUrl = buildShopeeAffiliateUrl(targetUrl, { subId });
+    let cleanTarget = cleanShopeeUrl(targetUrl);
+    // If it's a shortlink (s.shopee.vn, vn.shp.ee) without explicit /product/ or -i.
+    const isDirectProduct = cleanTarget.includes("/product/") || cleanTarget.includes("-i.");
+    if (!isDirectProduct) {
+      try {
+        const resolved = await lookupFastShopeeProduct(cleanTarget);
+        if (resolved?.productLink) {
+          cleanTarget = resolved.productLink;
+        }
+      } catch {}
+    }
+
+    const affiliateUrl = buildShopeeAffiliateUrl(cleanTarget, { subId });
     return NextResponse.redirect(affiliateUrl, {
       status: 307,
       headers: {

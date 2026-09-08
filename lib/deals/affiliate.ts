@@ -10,16 +10,48 @@ export const DEFAULT_SHOPEE_AFFILIATE_ID =
   "17351320644";
 
 /**
+ * Extracts a clean URL from a string that may contain text around it.
+ * e.g.: "Mua Áo thun tại Shopee ngay: https://s.shopee.vn/abcxyz" -> "https://s.shopee.vn/abcxyz"
+ */
+export function extractUrlFromText(input: string): string {
+  if (!input) return "";
+  const trimmed = input.trim();
+  const match = trimmed.match(/(https?:\/\/[^\s]+)/i);
+  if (match) {
+    let url = match[1];
+    // Strip trailing punctuation often attached at the end of sentences
+    url = url.replace(/[.,;!?)"'\]>]+$/, "");
+    return url;
+  }
+  return trimmed;
+}
+
+/**
  * Strips existing affiliate / UTM query params from Shopee URLs so
  * they don't conflict with our affiliate tracking.
+ * Unwraps nested origin_link if an affiliate URL is passed.
  */
 export function cleanShopeeUrl(rawUrl: string): string {
   try {
-    const trimmed = rawUrl.trim();
-    if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
-      return trimmed;
+    const extracted = extractUrlFromText(rawUrl);
+    if (!extracted.startsWith("http://") && !extracted.startsWith("https://")) {
+      return extracted;
     }
-    const parsed = new URL(trimmed);
+    const parsed = new URL(extracted);
+
+    // If an an_redir affiliate link is passed, unpack its origin_link
+    if (parsed.searchParams.has("origin_link")) {
+      const nested = parsed.searchParams.get("origin_link");
+      if (nested) {
+        try {
+          const decoded = decodeURIComponent(nested);
+          return cleanShopeeUrl(decoded);
+        } catch {
+          return cleanShopeeUrl(nested);
+        }
+      }
+    }
+
     const paramsToKeep = ["sp_atk", "xptdk"];
     const newSearch = new URLSearchParams();
     for (const [key, val] of parsed.searchParams.entries()) {
@@ -74,7 +106,8 @@ export function buildShopeeAffiliateUrl(
  */
 export function isShopeeUrl(rawUrl: string): boolean {
   try {
-    const lower = rawUrl.toLowerCase();
+    const extracted = extractUrlFromText(rawUrl);
+    const lower = extracted.toLowerCase();
     return (
       lower.includes("shopee.vn") ||
       lower.includes("s.shopee.vn") ||
@@ -97,6 +130,8 @@ export function buildCustomShortUrl(
   options?: {
     baseUrl?: string;
     subId?: string;
+    shopId?: string;
+    itemId?: string;
   },
 ): string {
   let base = (options?.baseUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://dealhoan.vn").trim();
@@ -104,6 +139,17 @@ export function buildCustomShortUrl(
     base = `https://${base}`;
   }
   const subId = options?.subId || "dealhoan";
+
+  // If shopId and itemId are explicitly provided, immediately build standard /go?s=...
+  if (options?.shopId && options?.itemId) {
+    const shortUrl = new URL("/go", base);
+    shortUrl.searchParams.set("s", `${options.shopId}.${options.itemId}`);
+    if (subId && subId !== "dealhoan" && subId !== "calc") {
+      shortUrl.searchParams.set("sub", subId);
+    }
+    return shortUrl.toString();
+  }
+
   const cleanUrl = cleanShopeeUrl(rawUrl);
 
   try {

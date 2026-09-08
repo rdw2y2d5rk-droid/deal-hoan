@@ -6,7 +6,12 @@ import type { User } from "@supabase/supabase-js";
 import { formatPrice, formatSold } from "@/lib/deals/format";
 import type { Deal, DealBundle, Coupon, CouponCategory, Platform } from "@/lib/deals/types";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { buildShopeeAffiliateUrl, isShopeeUrl, buildCustomShortUrl } from "@/lib/deals/affiliate";
+import {
+  buildShopeeAffiliateUrl,
+  isShopeeUrl,
+  buildCustomShortUrl,
+  extractUrlFromText,
+} from "@/lib/deals/affiliate";
 import { cashbackFor } from "@/lib/deals/score";
 import { resolveProductLocally, matchProductFromCatalog, SAMPLE_CHIP_PRODUCTS, type CalculatedProduct } from "@/lib/deals/resolve";
 
@@ -407,7 +412,8 @@ export default function HomeClient({
   };
 
   const executeCalculation = async (targetUrl: string) => {
-    const trimmed = targetUrl.trim();
+    const rawClean = extractUrlFromText(targetUrl);
+    const trimmed = (rawClean || targetUrl).trim();
     if (!trimmed) {
       setInputError(true);
       setTimeout(() => setInputError(false), 600);
@@ -415,6 +421,10 @@ export default function HomeClient({
         (document.activeElement as HTMLElement | null)?.blur();
       }, 1000);
       return notify("Dán link sản phẩm trước đã nhé 🙂");
+    }
+
+    if (rawClean && rawClean !== targetUrl) {
+      setLink(rawClean);
     }
 
     (document.activeElement as HTMLElement | null)?.blur();
@@ -595,7 +605,13 @@ export default function HomeClient({
                   }, 420);
                 }
               }}
-              onPaste={() => {
+              onPaste={(e) => {
+                const pasted = e.clipboardData?.getData("text") || "";
+                const extracted = extractUrlFromText(pasted);
+                if (extracted && extracted !== pasted) {
+                  e.preventDefault();
+                  setLink(extracted);
+                }
                 requestAnimationFrame(() => {
                   if (linkInputRef.current) linkInputRef.current.scrollLeft = 0;
                 });

@@ -1,4 +1,4 @@
-import { isShopeeUrl } from "../affiliate";
+import { isShopeeUrl, extractUrlFromText } from "../affiliate";
 
 export type FastShopeeProduct = {
   name: string;
@@ -9,6 +9,9 @@ export type FastShopeeProduct = {
   isVerifiedPrice: boolean;
   commission?: number;
   cap?: number;
+  productLink?: string;
+  shopId?: string;
+  itemId?: string;
 };
 
 // In-memory cache with 10-minute TTL
@@ -23,7 +26,8 @@ const cache = new Map<string, CacheEntry>();
 
 function getCacheKey(url: string): string {
   try {
-    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+    const extracted = extractUrlFromText(url);
+    const u = new URL(extracted.startsWith("http") ? extracted : `https://${extracted}`);
     // Extract shopId and itemId if present for canonical caching
     const m1 = u.pathname.match(/\/product\/(\d+)\/(\d+)/i);
     const m2 = u.pathname.match(/-i\.(\d+)\.(\d+)/i);
@@ -83,17 +87,18 @@ const BROWSER_HEADERS: HeadersInit = {
 
 /**
  * Resolves verified real-time Shopee price, title, shop name, and CDN image.
- * Uses 1-hour in-memory cache to minimize external queries.
+ * Uses 10-minute in-memory cache to minimize external queries.
  */
 export async function lookupFastShopeeProduct(
-  canonicalUrl: string,
+  rawUrl: string,
   discountPercentHint?: number | null,
 ): Promise<FastShopeeProduct | null> {
-  if (!isShopeeUrl(canonicalUrl)) {
+  const cleanLink = extractUrlFromText(rawUrl);
+  if (!isShopeeUrl(cleanLink)) {
     return null;
   }
 
-  const cacheKey = getCacheKey(canonicalUrl);
+  const cacheKey = getCacheKey(cleanLink);
   const cached = getFromCache(cacheKey);
   if (cached) {
     return cached;
@@ -103,7 +108,7 @@ export async function lookupFastShopeeProduct(
     const res = await fetch("https://api.longhousee.com/api/v1/shopee/product-commission", {
       method: "POST",
       headers: BROWSER_HEADERS,
-      body: JSON.stringify({ link: canonicalUrl }),
+      body: JSON.stringify({ link: cleanLink }),
       signal: AbortSignal.timeout(3000),
       cache: "no-store",
     });
@@ -137,6 +142,21 @@ export async function lookupFastShopeeProduct(
       originalPrice = Math.round((price * 1.35) / 1000) * 1000;
     }
 
+    const productLink = info.productLink ? String(info.productLink).trim() : undefined;
+    const rawItemId = info.itemId ? String(info.itemId).trim() : undefined;
+    let shopId: string | undefined = undefined;
+    let itemId: string | undefined = rawItemId;
+
+    if (productLink) {
+      const match1 = productLink.match(/\/product\/(\d+)\/(\d+)/i);
+      const match2 = productLink.match(/-i\.(\d+)\.(\d+)/i);
+      const m = match1 || match2;
+      if (m) {
+        shopId = m[1];
+        itemId = m[2];
+      }
+    }
+
     const result: FastShopeeProduct = {
       name: String(info.productName || "").trim(),
       price,
@@ -146,9 +166,15 @@ export async function lookupFastShopeeProduct(
       isVerifiedPrice: true,
       commission,
       cap,
+      productLink,
+      shopId,
+      itemId,
     };
 
     setInCache(cacheKey, result);
+    if (shopId && itemId) {
+      setInCache(`shopee_${shopId}_${itemId}`, result);
+    }
     return result;
   } catch {
     return null;
