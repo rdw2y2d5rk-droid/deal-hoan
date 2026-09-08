@@ -142,19 +142,12 @@ async function readCache(): Promise<CacheFile | null> {
 
   if (flashData?.sessions?.length) {
     const nowSec = Math.floor(Date.now() / 1000);
-    const vnTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
-    const vnHour = vnTime.getHours();
-
-    const matchedSession = flashData.sessions.find((s: { startTime: number; endTime: number }) => {
-      const sStart = new Date(s.startTime * 1000).getHours();
-      const sEnd = new Date(s.endTime * 1000).getHours() || 24;
-      return vnHour >= sStart && vnHour < sEnd;
-    });
-
     const activeSession =
-      matchedSession ||
       flashData.sessions.find(
         (s: { startTime: number; endTime: number }) => nowSec >= s.startTime && nowSec < s.endTime
+      ) ||
+      flashData.sessions.find(
+        (s: { startTime: number; endTime: number }) => s.startTime > nowSec
       ) ||
       flashData.sessions[0];
 
@@ -249,26 +242,20 @@ export async function getActiveFlashSaleSession(): Promise<{
 
   if (flashData?.sessions?.length) {
     const nowSec = Math.floor(Date.now() / 1000);
-    const vnTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
-    const vnHour = vnTime.getHours();
-
-    // Tìm session theo khung giờ hiện tại trong ngày (giờ VN)
-    const matchedSession = flashData.sessions.find((s: { startTime: number; endTime: number }) => {
-      const sStart = new Date(s.startTime * 1000).getHours();
-      const sEnd = new Date(s.endTime * 1000).getHours() || 24;
-      return vnHour >= sStart && vnHour < sEnd;
-    });
-
     const activeSession =
-      matchedSession ||
       flashData.sessions.find(
         (s: { startTime: number; endTime: number }) => nowSec >= s.startTime && nowSec < s.endTime
+      ) ||
+      flashData.sessions.find(
+        (s: { startTime: number; endTime: number }) => s.startTime > nowSec
       ) ||
       flashData.sessions[0];
 
     if (activeSession) {
       let slotEndSec = activeSession.endTime;
       if (slotEndSec <= nowSec) {
+        const vnTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+        const vnHour = vnTime.getHours();
         const slotHours = [2, 9, 12, 15, 17, 21, 24];
         const nextHour = slotHours.find((h) => h > vnHour) ?? 24;
         const targetDate = new Date(vnTime);
