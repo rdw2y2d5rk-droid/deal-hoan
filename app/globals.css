@@ -1053,34 +1053,6 @@ h2,
   80% { box-shadow: 0 0 0 5px rgba(251, 146, 60, 0.13); transform: translateY(-1px); }
   88% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0); transform: translateY(0); }
 }
-@media (max-width: 600px) {
-  .buy-bottom {
-    grid-template-columns: 1fr;
-  }
-  .buy-actions {
-    justify-content: flex-end;
-  }
-  .buy-modal {
-    padding: 22px 18px 0;
-  }
-  .buy-rules {
-    grid-template-columns: 1fr;
-  }
-  .buy-modal > footer {
-    margin: 0 -18px;
-    padding: 11px 18px;
-  }
-  .modal-close {
-    top: 20px;
-    right: 18px;
-  }
-  .buy-actions {
-    flex-wrap: wrap;
-  }
-  .buy-actions .primary {
-    padding: 0 12px;
-  }
-}
 .chips,
 .live,
 .stats {
@@ -2770,29 +2742,90 @@ h2,
   }
 
   /* Buy Modal */
+  .buy-overlay {
+    padding: 0;
+    align-items: flex-end;
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: blur(4px);
+  }
   .buy-modal {
-    width: calc(100% - 24px);
-    max-width: 440px;
-    max-height: 88vh;
+    width: 100%;
+    max-width: 100%;
+    max-height: 90vh;
     overflow-y: auto;
-    padding: 20px 16px 0;
-    border-radius: 18px;
-    margin: 12px auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 18px 0;
+    border-radius: 22px 22px 0 0;
+    margin: 0;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.25);
+    animation: sheet-up 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes sheet-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  .modal-close {
+    top: 16px;
+    right: 16px;
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-badge {
+    font-size: 12px;
+    padding: 5px 11px;
   }
   .buy-modal h3 {
-    font-size: 20px;
+    font-size: 19px;
+    margin: 10px 0 6px;
+    letter-spacing: -0.4px;
+  }
+  .buy-modal > p {
+    font-size: 13px;
+    line-height: 1.5;
   }
   .buy-rules {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .buy-rules div {
+    padding: 10px 12px;
+    border-radius: 11px;
+    gap: 8px;
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+  .buy-rules div span {
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+  .buy-rules b {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+  }
+  .buy-warning {
+    margin-top: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 11px;
   }
   .buy-bottom {
     display: block;
-    padding-top: 14px;
+    padding: 14px 0 16px;
   }
   .buy-dont-show {
-    margin-bottom: 14px;
-    font-size: 12.5px;
+    margin-bottom: 12px;
+    font-size: 13px;
   }
   .buy-actions {
     display: flex;
@@ -2803,22 +2836,24 @@ h2,
   .buy-actions .primary,
   .buy-actions > button:first-child {
     width: 100%;
-    height: 46px;
+    height: 48px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 12px;
+  }
+  .buy-actions > button:first-child {
+    height: 42px;
     font-size: 13.5px;
+    font-weight: 600;
   }
   .buy-actions .primary {
     order: -1;
   }
   .buy-modal > footer {
-    margin: 16px -16px 0;
-    padding: 10px 14px;
+    margin: 0 -18px;
+    padding: 11px 18px calc(11px + env(safe-area-inset-bottom, 0px));
     font-size: 11px;
-  }
-  .modal-close {
-    top: 16px;
-    right: 14px;
-    width: 32px;
-    height: 32px;
+    line-height: 1.45;
   }
 
   /* Toast notification */
@@ -2908,6 +2943,22 @@ h2,
     font-size: 11.5px;
     min-height: 30px;
     padding: 4px 14px;
+  }
+  .buy-modal {
+    padding: 16px 14px 0;
+  }
+  .buy-modal h3 {
+    font-size: 17.5px;
+  }
+  .buy-rules div {
+    padding: 8px 10px;
+    font-size: 11.5px;
+  }
+  .buy-modal > footer {
+    margin: 0 -14px;
+    padding-left: 14px;
+    padding-right: 14px;
+    font-size: 10.5px;
   }
 }
 
