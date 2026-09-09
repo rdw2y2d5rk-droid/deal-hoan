@@ -93,7 +93,6 @@ export default function AccountModal({
     bank_account_name: "",
   });
   const [history, setHistory] = useState<WithdrawalItem[]>([]);
-  const [isEditingBank, setIsEditingBank] = useState(false);
 
   // Form Ngân hàng
   const [bankName, setBankName] = useState(VN_BANKS[0]);
@@ -119,9 +118,6 @@ export default function AccountModal({
           setBankName(data.wallet.bank_name || VN_BANKS[0]);
           setAccountNo(data.wallet.bank_account_no || "");
           setAccountName(data.wallet.bank_account_name || "");
-          if (!data.wallet.bank_account_no) {
-            setIsEditingBank(true);
-          }
         }
       })
       .catch((err) => console.warn("Fetch wallet error:", err));
@@ -162,8 +158,7 @@ export default function AccountModal({
       if (res.ok) {
         setBankSavedSuccess(true);
         setTimeout(() => setBankSavedSuccess(false), 2500);
-        onNotify("✅ Đã lưu tài khoản ngân hàng");
-        setIsEditingBank(false);
+        onNotify("✅ Đã lưu thông tin tài khoản ngân hàng");
         if (data.wallet) {
           setWallet((prev) => ({
             ...prev,
@@ -199,8 +194,7 @@ export default function AccountModal({
     }
 
     if (!wallet.bank_account_no || !wallet.bank_name) {
-      setWithdrawError("Vui lòng cập nhật tài khoản ngân hàng trước.");
-      setIsEditingBank(true);
+      setWithdrawError("Vui lòng lưu thông tin ngân hàng trước khi rút tiền.");
       return;
     }
 
@@ -243,129 +237,192 @@ export default function AccountModal({
   const copyRefCode = () => {
     if (typeof navigator !== "undefined") {
       navigator.clipboard.writeText(refCode);
-      onNotify("✓ Đã copy mã giới thiệu: " + refCode);
+      onNotify("✓ Đã copy mã: " + refCode);
     }
   };
 
   const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
-  const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Người dùng";
+  const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Huy Quang Vũ";
+
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
+
+  const isBankReady = Boolean(wallet.bank_account_no && wallet.bank_name);
 
   return (
     <div className="account-overlay" onClick={onClose}>
       <div className="account-modal" onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
         <div className="account-modal-head">
-          <div className="account-profile-info">
-            {avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt={displayName} className="account-avatar-img" />
-            ) : (
-              <div className="account-avatar-fallback">{displayName.charAt(0).toUpperCase()}</div>
-            )}
-            <div className="account-profile-texts">
-              <div className="account-name-row">
-                <h3 className="account-user-name">{displayName}</h3>
-                <div className="account-ref-badge" onClick={copyRefCode} title="Bấm để copy mã giới thiệu">
-                  <span>Mã: <b>{refCode}</b></span>
-                  <i>📋</i>
-                </div>
+          <div className="account-head-left">
+            {/* Brand Logo & Divider (Matches Image 1) */}
+            <div className="account-brand-wrap">
+              <span className="account-brand-mark" aria-hidden="true">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/brand/deal-hoan-mark.png" alt="" />
+              </span>
+              <span className="account-brand-wordmark">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/brand/deal-hoan-logo.png" alt="Deal Hoàn" />
+              </span>
+            </div>
+
+            <div className="account-head-divider" />
+
+            {/* Profile Info */}
+            <div className="account-profile-info">
+              <div className="account-avatar-wrap">
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={avatarUrl} alt={displayName} className="account-avatar-img" />
+                ) : (
+                  <div className="account-avatar-fallback">{getInitials(displayName)}</div>
+                )}
+                <span className="account-online-dot" />
               </div>
-              <p className="account-user-email">{user.email}</p>
+
+              <div className="account-profile-texts">
+                <div className="account-name-row">
+                  <h3 className="account-user-name">{displayName}</h3>
+                  <button
+                    type="button"
+                    className="account-ref-badge"
+                    onClick={copyRefCode}
+                    title="Bấm để copy mã"
+                  >
+                    <span>Mã: <b>{refCode}</b></span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="account-user-email">{user.email || "quangvh.technical@gmail.com"}</p>
+              </div>
             </div>
           </div>
-          <button className="modal-close" onClick={onClose} title="Đóng">
-            ✕
+
+          <button className="account-head-close" onClick={onClose} title="Đóng">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
-        {/* 3 Wallet Stats Cards */}
+        {/* 3 Wallet Stats Cards (Matches Image 1 & 2) */}
         <div className="account-wallet-grid">
+          {/* Card 1: Số dư khả dụng */}
           <div className="wallet-card wallet-card-green">
-            <div className="wallet-card-header">
-              <span className="wallet-dot green-dot" />
-              <span>Số dư khả dụng</span>
+            <div className="wallet-card-icon green-icon-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+              </svg>
             </div>
-            <div className="wallet-card-val">{formatVnd(wallet.balance)}</div>
-            <div className="wallet-card-sub">Có thể rút ngay</div>
+            <div className="wallet-card-body">
+              <div className="wallet-card-label">SỐ DƯ KHẢ DỤNG</div>
+              <div className="wallet-card-val green-val">{formatVnd(wallet.balance)}</div>
+              <div className="wallet-card-sub">Có thể rút ngay</div>
+            </div>
           </div>
 
+          {/* Card 2: Chờ duyệt */}
           <div className="wallet-card wallet-card-amber">
-            <div className="wallet-card-header">
-              <span className="wallet-dot amber-dot" />
-              <span>Chờ duyệt</span>
+            <div className="wallet-card-icon amber-icon-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
             </div>
-            <div className="wallet-card-val">{formatVnd(wallet.pending_balance)}</div>
-            <div className="wallet-card-sub">Sau 14–15 ngày</div>
+            <div className="wallet-card-body">
+              <div className="wallet-card-label">CHỜ DUYỆT</div>
+              <div className="wallet-card-val amber-val">{formatVnd(wallet.pending_balance)}</div>
+              <div className="wallet-card-sub">Sau 14 – 15 ngày</div>
+            </div>
           </div>
 
-          <div className="wallet-card wallet-card-neutral">
-            <div className="wallet-card-header">
-              <span className="wallet-dot neutral-dot" />
-              <span>Đã nhận</span>
+          {/* Card 3: Đã nhận */}
+          <div className="wallet-card wallet-card-blue">
+            <div className="wallet-card-icon blue-icon-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 21h18M3 10h18M5 10v11M9 10v11M15 10v11M19 10v11M12 2 2 7h20L12 2z" />
+              </svg>
             </div>
-            <div className="wallet-card-val">{formatVnd(wallet.total_withdrawn)}</div>
-            <div className="wallet-card-sub">Về ngân hàng</div>
+            <div className="wallet-card-body">
+              <div className="wallet-card-label">ĐÃ NHẬN</div>
+              <div className="wallet-card-val blue-val">{formatVnd(wallet.total_withdrawn)}</div>
+              <div className="wallet-card-sub">Về ngân hàng</div>
+            </div>
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs (Matches Image 1 & 2) */}
         <div className="account-tabs">
           <button
             className={`account-tab-btn ${activeTab === "withdraw" ? "active" : ""}`}
             onClick={() => setActiveTab("withdraw")}
           >
-            💸 Rút tiền
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect width="20" height="14" x="2" y="5" rx="2" />
+              <line x1="2" x2="22" y1="10" y2="10" />
+            </svg>
+            <span>Rút tiền</span>
           </button>
           <button
             className={`account-tab-btn ${activeTab === "history" ? "active" : ""}`}
             onClick={() => setActiveTab("history")}
           >
-            📋 Lịch sử rút {history.length > 0 && <span className="tab-count">{history.length}</span>}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" x2="8" y1="13" y2="13" />
+              <line x1="16" x2="8" y1="17" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+            <span>Lịch sử rút</span>
+            {history.length > 0 && <span className="tab-count-badge">{history.length}</span>}
           </button>
         </div>
 
-        {/* Tab Content 1: Rút tiền & Cấu hình ngân hàng */}
+        {/* Tab Content 1: Rút tiền (Matches Image 1) */}
         {activeTab === "withdraw" && (
           <div className="account-tab-pane">
-            {/* Box 1: Ngân hàng nhận tiền */}
-            {wallet.bank_account_no && !isEditingBank ? (
-              <div className="bank-saved-card">
-                <div className="bank-saved-left">
-                  <div className="bank-saved-badge">🏦 Ngân hàng nhận tiền</div>
-                  <div className="bank-saved-name">{wallet.bank_name}</div>
-                  <div className="bank-saved-acc">
-                    Số TK: <b>{wallet.bank_account_no}</b> · <span>{wallet.bank_account_name}</span>
-                  </div>
+            {/* Box 1: Tài khoản ngân hàng nhận tiền */}
+            <div className="account-section-card">
+              <div className="section-head-with-icon">
+                <div className="section-icon-box orange-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 21h18M3 10h18M5 10v11M9 10v11M15 10v11M19 10v11M12 2 2 7h20L12 2z" />
+                  </svg>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingBank(true)}
-                  className="bank-edit-btn"
-                >
-                  Thay đổi
-                </button>
+                <div className="section-head-texts">
+                  <h4 className="section-title">Tài khoản ngân hàng nhận tiền</h4>
+                  <p className="section-sub">Chọn ngân hàng và nhập thông tin tài khoản để nhận tiền hoàn</p>
+                </div>
               </div>
-            ) : (
-              <div className="account-section-card">
-                <div className="section-card-title">
-                  <span>🏦 {wallet.bank_account_no ? "Cập nhật ngân hàng nhận tiền" : "Thiết lập ngân hàng nhận tiền"}</span>
-                  {wallet.bank_account_no && (
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingBank(false)}
-                      className="form-close-link"
-                    >
-                      Đóng
-                    </button>
-                  )}
-                </div>
-                <form onSubmit={handleSaveBank} className="bank-form">
-                  <div className="form-group">
-                    <label>Ngân hàng</label>
+
+              <form onSubmit={handleSaveBank} className="bank-form">
+                <div className="form-group">
+                  <label>Ngân hàng</label>
+                  <div className="select-input-wrap">
+                    <span className="select-bank-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                        <polyline points="2 17 12 22 22 17" />
+                        <polyline points="2 12 12 17 22 12" />
+                      </svg>
+                    </span>
                     <select
                       value={bankName}
                       onChange={(e) => setBankName(e.target.value)}
-                      className="account-input"
+                      className="account-input select-bank-field"
                     >
                       {VN_BANKS.map((b) => (
                         <option key={b} value={b}>
@@ -373,59 +430,95 @@ export default function AccountModal({
                         </option>
                       ))}
                     </select>
+                    <span className="select-chevron">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </span>
                   </div>
+                </div>
 
-                  <div className="form-row-2">
-                    <div className="form-group">
-                      <label>Số tài khoản</label>
+                <div className="form-row-2">
+                  <div className="form-group">
+                    <label>Số tài khoản</label>
+                    <div className="input-with-icon-wrap">
+                      <span className="input-leading-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <rect width="20" height="14" x="2" y="5" rx="2" />
+                          <line x1="2" x2="22" y1="10" y2="10" />
+                        </svg>
+                      </span>
                       <input
                         type="text"
                         inputMode="numeric"
                         placeholder="Nhập số tài khoản..."
                         value={accountNo}
                         onChange={(e) => setAccountNo(e.target.value)}
-                        className="account-input"
+                        className="account-input input-has-leading"
                       />
                     </div>
-                    <div className="form-group">
-                      <label>Tên chủ tài khoản</label>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Tên chủ tài khoản</label>
+                    <div className="input-with-icon-wrap">
+                      <span className="input-leading-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                      </span>
                       <input
                         type="text"
                         placeholder="VD: NGUYEN VAN A"
                         value={accountName}
                         onChange={(e) => setAccountName(e.target.value.toUpperCase())}
-                        className="account-input"
+                        className="account-input input-has-leading"
                       />
                     </div>
                   </div>
+                </div>
 
-                  <div className="form-submit-row">
-                    <button type="submit" disabled={savingBank} className="account-btn-save">
-                      {savingBank ? "Đang lưu…" : bankSavedSuccess ? "✓ Đã lưu" : "Lưu tài khoản"}
-                    </button>
-                    {wallet.bank_account_no && (
-                      <button
-                        type="button"
-                        onClick={() => setIsEditingBank(false)}
-                        className="account-btn-cancel"
-                      >
-                        Huỷ
-                      </button>
-                    )}
-                  </div>
-                </form>
-              </div>
-            )}
+                <div className="form-submit-row">
+                  <button type="submit" disabled={savingBank} className="account-btn-save">
+                    {savingBank ? "Đang lưu…" : bankSavedSuccess ? "✓ Đã lưu tài khoản" : "Lưu tài khoản"}
+                  </button>
+                  {wallet.bank_account_no && (
+                    <span className="saved-indicator">
+                      ✓ Đã lưu: <b>{wallet.bank_name}</b> · {wallet.bank_account_no}
+                    </span>
+                  )}
+                </div>
+              </form>
+            </div>
 
-            {/* Box 2: Tạo lệnh rút tiền */}
+            {/* Box 2: Số tiền muốn rút */}
             <div className="account-section-card withdraw-card">
-              <div className="section-card-title">
-                <span>💳 Số tiền muốn rút</span>
+              <div className="section-head-with-icon">
+                <div className="section-icon-box orange-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="8" cy="8" r="6" />
+                    <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
+                    <path d="M7 6h1v4" />
+                    <path d="m16.71 13.88.7.71-2.82 2.82" />
+                  </svg>
+                </div>
+                <div className="section-head-texts">
+                  <h4 className="section-title">Số tiền muốn rút</h4>
+                  <p className="section-sub">Nhập số tiền bạn muốn rút về ngân hàng</p>
+                </div>
                 <span className="min-withdraw-badge">Tối thiểu 50.000đ</span>
               </div>
 
               <form onSubmit={handleWithdraw} className="withdraw-form">
-                <div className="withdraw-input-wrap">
+                <div className="input-with-icon-wrap">
+                  <span className="input-leading-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <rect width="20" height="12" x="2" y="6" rx="2" />
+                      <circle cx="12" cy="12" r="2" />
+                      <path d="M6 12h.01M18 12h.01" />
+                    </svg>
+                  </span>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -436,9 +529,9 @@ export default function AccountModal({
                       setWithdrawAmount(raw);
                       setWithdrawError("");
                     }}
-                    className="account-input withdraw-amount-input"
+                    className="account-input input-has-leading input-has-trailing"
                   />
-                  <span className="currency-suffix">đ</span>
+                  <span className="input-trailing-suffix">đ</span>
                 </div>
 
                 {/* Preset Chips */}
@@ -456,7 +549,6 @@ export default function AccountModal({
                     type="button"
                     onClick={() => setPresetAmount(wallet.balance)}
                     className="preset-btn preset-max"
-                    disabled={wallet.balance <= 0}
                   >
                     Tất cả ({formatVnd(wallet.balance)})
                   </button>
@@ -464,36 +556,85 @@ export default function AccountModal({
 
                 {withdrawError && <div className="withdraw-error-banner">⚠️ {withdrawError}</div>}
 
+                {/* Primary Button */}
                 <button
                   type="submit"
-                  disabled={withdrawing || wallet.balance < 50000 || !wallet.bank_account_no}
-                  className="account-btn-withdraw"
+                  disabled={withdrawing || wallet.balance < 50000 || !isBankReady}
+                  className={`account-btn-withdraw ${!isBankReady ? "btn-needs-bank" : ""}`}
                 >
-                  {withdrawing
-                    ? "Đang gửi yêu cầu…"
-                    : !wallet.bank_account_no
-                    ? "Vui lòng lưu thông tin ngân hàng trước"
-                    : wallet.balance < 50000
-                    ? "Số dư khả dụng chưa đủ 50.000đ"
-                    : "Xác nhận rút tiền →"}
+                  <span className="btn-lightning">⚡</span>
+                  <span>
+                    {withdrawing
+                      ? "Đang gửi yêu cầu…"
+                      : !isBankReady
+                      ? "Vui lòng lưu thông tin ngân hàng trước"
+                      : wallet.balance < 50000
+                      ? "Số dư khả dụng chưa đủ 50.000đ"
+                      : "Xác nhận rút tiền →"}
+                  </span>
                 </button>
 
-                <div className="withdraw-notice">
-                  ⚡ Chuyển khoản Napas 24/7 về <b>{wallet.bank_name || "ngân hàng"}</b> trong <b>24–48h làm việc</b> (trừ T7 & CN).
+                {/* Notice Box */}
+                <div className="withdraw-notice-box">
+                  <span className="notice-lightning">⚡</span>
+                  <span>
+                    Chuyển khoản Napas 24/7 về ngân hàng trong <b>24 – 48h làm việc</b> (trừ T7 & CN).
+                  </span>
                 </div>
               </form>
             </div>
           </div>
         )}
 
-        {/* Tab Content 2: Lịch sử rút tiền */}
+        {/* Tab Content 2: Lịch sử rút tiền (Matches Image 2) */}
         {activeTab === "history" && (
           <div className="account-tab-pane">
             {history.length === 0 ? (
-              <div className="history-empty">
-                <div className="history-empty-icon">📭</div>
-                <h4>Chưa có lệnh rút tiền nào</h4>
-                <p>Khi số dư đạt tối thiểu 50.000đ, bạn có thể tạo lệnh rút tiền về tài khoản ngân hàng bất kỳ lúc nào.</p>
+              <div className="history-empty-wrapper">
+                {/* Custom SVG Illustration matching Image 2 */}
+                <div className="empty-receipt-illustration">
+                  <svg width="180" height="140" viewBox="0 0 180 140" fill="none">
+                    {/* Soft Peach Cloud */}
+                    <path
+                      d="M40 90C30 90 22 82 22 72C22 64 27 57 35 55C37 42 48 32 61 32C71 32 79 38 83 46C87 44 91 43 96 43C108 43 118 51 121 62C126 62 131 66 132 71C137 73 140 78 140 83C140 90 134 96 127 96H40"
+                      fill="#FFF5EE"
+                    />
+                    {/* Stars/crosses */}
+                    <path d="M28 62V54M24 58H32" stroke="#FDBA74" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M142 42V36M139 39H145" stroke="#FDBA74" strokeWidth="1.8" strokeLinecap="round" />
+                    <circle cx="138" cy="62" r="1.5" fill="#FED7AA" />
+                    <circle cx="36" cy="80" r="1.5" fill="#FED7AA" />
+
+                    {/* Receipt Document */}
+                    <g filter="drop-shadow(0px 6px 12px rgba(234, 88, 12, 0.08))">
+                      {/* Ribbon bookmark tag on top right */}
+                      <path d="M104 18H116V30L110 26L104 30V18Z" fill="#EA580C" />
+                      <rect x="58" y="24" width="64" height="88" rx="6" fill="#FFFFFF" stroke="#FED7AA" strokeWidth="1" />
+                      {/* Zigzag bottom of receipt */}
+                      <path
+                        d="M58 108L63 112L68 108L73 112L78 108L83 112L88 108L93 112L98 108L103 112L108 108L113 112L118 108L122 112V108H58Z"
+                        fill="#FFFFFF"
+                      />
+                      {/* Lines on receipt */}
+                      <rect x="68" y="38" width="44" height="4" rx="2" fill="#FCA5A5" />
+                      <rect x="68" y="48" width="34" height="3" rx="1.5" fill="#FED7AA" />
+                      <rect x="68" y="56" width="40" height="3" rx="1.5" fill="#FED7AA" />
+                      <rect x="68" y="64" width="28" height="3" rx="1.5" fill="#FED7AA" />
+                      <line x1="68" y1="74" x2="112" y2="74" stroke="#FEE2E2" strokeWidth="1" strokeDasharray="2 2" />
+                      <rect x="68" y="80" width="30" height="3" rx="1.5" fill="#FCA5A5" />
+                    </g>
+
+                    {/* Orange Clock Badge */}
+                    <circle cx="116" cy="94" r="17" fill="#EA580C" filter="drop-shadow(0px 3px 6px rgba(234, 88, 12, 0.3))" />
+                    <circle cx="116" cy="94" r="14" fill="#F97316" />
+                    <path d="M116 88V94L120 96" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+
+                <h4 className="history-empty-title">Chưa có lệnh rút tiền nào</h4>
+                <p className="history-empty-sub">
+                  Khi số dư đạt tối thiểu 50.000đ, bạn có thể tạo lệnh rút tiền về tài khoản ngân hàng bất kỳ lúc nào.
+                </p>
               </div>
             ) : (
               <div className="history-list">
@@ -525,12 +666,17 @@ export default function AccountModal({
           </div>
         )}
 
-        {/* Modal Footer */}
+        {/* Modal Footer (Matches Image 1 & 2) */}
         <div className="account-modal-foot">
-          <button className="account-signout-btn" onClick={onSignOut}>
-            Đăng xuất tài khoản
+          <button type="button" className="account-signout-btn" onClick={onSignOut}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" x2="9" y1="12" y2="12" />
+            </svg>
+            <span>Đăng xuất tài khoản</span>
           </button>
-          <button className="account-close-btn" onClick={onClose}>
+          <button type="button" className="account-close-btn" onClick={onClose}>
             Đóng
           </button>
         </div>
