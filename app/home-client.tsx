@@ -1139,22 +1139,22 @@ export default function HomeClient({
         </div>
       </section>
       <section className="container block" id="coupons">
-        <div className="heading">
-          <div>
+        <div className="heading heading-with-sub">
+          <div className="heading-main">
             <h2>Mã giảm giá nổi bật</h2>
-            <p className="deal-source">
-              Mã giảm giá Shopee hôm nay — tự động cập nhật và áp cùng cashback hoàn tiền.
-            </p>
+            <a
+              href={getAffiliateUrl("https://shopee.vn/m/ma-giam-gia")}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+            >
+              Tất cả mã Shopee →
+            </a>
           </div>
-          <a
-            href={getAffiliateUrl("https://shopee.vn/m/ma-giam-gia")}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-          >
-            Tất cả mã Shopee →
-          </a>
+          <p className="deal-source">
+            Mã giảm giá Shopee hôm nay — tự động cập nhật và áp cùng cashback hoàn tiền.
+          </p>
         </div>
-        <div className="tabs" style={{ marginBottom: "18px" }}>
+        <div className="tabs">
           {COUPON_TABS.map((t) => (
             <button
               key={t.key}
