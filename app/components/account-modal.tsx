@@ -84,20 +84,59 @@ export default function AccountModal({
   onNotify: (msg: string) => void;
 }) {
   const [activeTab, setActiveTab] = useState<"withdraw" | "history">("withdraw");
-  const [wallet, setWallet] = useState<WalletData>({
-    balance: 0,
-    pending_balance: 0,
-    total_withdrawn: 0,
-    bank_name: "",
-    bank_account_no: "",
-    bank_account_name: "",
+  const [wallet, setWallet] = useState<WalletData>(() => {
+    // Hydrate initial bank info from localStorage if available
+    let savedBank = { bank_name: "", bank_account_no: "", bank_account_name: "" };
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("dealhoan_bank_info_" + user.id);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          savedBank = {
+            bank_name: parsed.bank_name || "",
+            bank_account_no: parsed.bank_account_no || "",
+            bank_account_name: parsed.bank_account_name || "",
+          };
+        }
+      } catch {}
+    }
+    return {
+      balance: 0,
+      pending_balance: 0,
+      total_withdrawn: 0,
+      ...savedBank,
+    };
   });
   const [history, setHistory] = useState<WithdrawalItem[]>([]);
 
   // Form Ngân hàng
-  const [bankName, setBankName] = useState(VN_BANKS[0]);
-  const [accountNo, setAccountNo] = useState("");
-  const [accountName, setAccountName] = useState("");
+  const [bankName, setBankName] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("dealhoan_bank_info_" + user.id);
+        if (stored) return JSON.parse(stored).bank_name || VN_BANKS[0];
+      } catch {}
+    }
+    return VN_BANKS[0];
+  });
+  const [accountNo, setAccountNo] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("dealhoan_bank_info_" + user.id);
+        if (stored) return JSON.parse(stored).bank_account_no || "";
+      } catch {}
+    }
+    return "";
+  });
+  const [accountName, setAccountName] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("dealhoan_bank_info_" + user.id);
+        if (stored) return JSON.parse(stored).bank_account_name || "";
+      } catch {}
+    }
+    return "";
+  });
   const [savingBank, setSavingBank] = useState(false);
   const [bankSavedSuccess, setBankSavedSuccess] = useState(false);
 
@@ -108,16 +147,62 @@ export default function AccountModal({
 
   const refCode = `u_${user.id.slice(0, 8)}`;
 
+  // Tải dữ liệu ví và lịch sử từ server
   useEffect(() => {
     let cancelled = false;
+
     fetch("/api/wallet")
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled && data.wallet) {
-          setWallet(data.wallet);
-          setBankName(data.wallet.bank_name || VN_BANKS[0]);
-          setAccountNo(data.wallet.bank_account_no || "");
-          setAccountName(data.wallet.bank_account_name || "");
+          const serverW = data.wallet;
+
+          // Nếu server có thông tin ngân hàng thì cập nhật state & localStorage
+          if (serverW.bank_account_no) {
+            setWallet(serverW);
+            setBankName(serverW.bank_name || VN_BANKS[0]);
+            setAccountNo(serverW.bank_account_no);
+            setAccountName(serverW.bank_account_name || "");
+            try {
+              localStorage.setItem(
+                "dealhoan_bank_info_" + user.id,
+                JSON.stringify({
+                  bank_name: serverW.bank_name || VN_BANKS[0],
+                  bank_account_no: serverW.bank_account_no,
+                  bank_account_name: serverW.bank_account_name || "",
+                })
+              );
+            } catch {}
+          } else {
+            // Nếu server chưa có nhưng localStorage có thì giữ nguyên và sync lên server
+            try {
+              const stored = localStorage.getItem("dealhoan_bank_info_" + user.id);
+              if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed.bank_account_no) {
+                  setWallet((prev) => ({
+                    ...prev,
+                    ...serverW,
+                    bank_name: parsed.bank_name || VN_BANKS[0],
+                    bank_account_no: parsed.bank_account_no,
+                    bank_account_name: parsed.bank_account_name || "",
+                  }));
+                  setBankName(parsed.bank_name || VN_BANKS[0]);
+                  setAccountNo(parsed.bank_account_no);
+                  setAccountName(parsed.bank_account_name || "");
+
+                  // Sync ngầm lên server
+                  fetch("/api/wallet", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(parsed),
+                  }).catch(() => {});
+                  return;
+                }
+              }
+            } catch {}
+            setWallet(serverW);
+          }
         }
       })
       .catch((err) => console.warn("Fetch wallet error:", err));
@@ -134,14 +219,108 @@ export default function AccountModal({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [user.id]);
 
-  // Xử lý lưu ngân hàng
+  // Kiểm tra lệnh rút đang chờ xử lý
+  const pendingWithdrawal = history.find((h) => h.status === "pending");
+
+  // Kiểm tra tài khoản ngân hàng đã sẵn sàng chưa
+  const isBankReady = Boolean(wallet.bank_account_no && wallet.bank_name);
+
+  // Số tiền parsed
+  const parsedAmount = Number(withdrawAmount.replace(/\D/g, ""));
+
+  // Hệ thống Validate nhiều Rule chặt chẽ cho số tiền rút
+  const validateWithdrawal = (): { isValid: boolean; error?: string; hint?: string } => {
+    if (!isBankReady) {
+      return { isValid: false, error: "Vui lòng lưu thông tin ngân hàng trước khi rút tiền." };
+    }
+    if (pendingWithdrawal) {
+      return {
+        isValid: false,
+        error: `Bạn đang có 1 lệnh rút ${formatVnd(pendingWithdrawal.amount)} đang chờ xử lý. Vui lòng đợi hoàn tất.`,
+      };
+    }
+    if (wallet.balance < 50000) {
+      return {
+        isValid: false,
+        error: `Số dư khả dụng (${formatVnd(wallet.balance)}) chưa đạt mức tối thiểu 50.000đ để rút.`,
+      };
+    }
+    if (!withdrawAmount) {
+      return {
+        isValid: false,
+        hint: `Số dư khả dụng: ${formatVnd(wallet.balance)} · Rút tối thiểu 50.000đ`,
+      };
+    }
+    if (!parsedAmount || parsedAmount <= 0) {
+      return { isValid: false, error: "Số tiền muốn rút không hợp lệ." };
+    }
+    if (parsedAmount < 50000) {
+      return {
+        isValid: false,
+        error: `Số tiền rút tối thiểu là 50.000đ (còn thiếu ${formatVnd(50000 - parsedAmount)}).`,
+      };
+    }
+    if (parsedAmount > wallet.balance) {
+      return {
+        isValid: false,
+        error: `Số tiền rút (${formatVnd(parsedAmount)}) vượt quá số dư khả dụng (${formatVnd(wallet.balance)}).`,
+      };
+    }
+    if (parsedAmount > 50000000) {
+      return {
+        isValid: false,
+        error: "Số tiền rút tối đa mỗi lệnh là 50.000.000đ.",
+      };
+    }
+    if (parsedAmount % 1000 !== 0) {
+      return {
+        isValid: false,
+        error: "Số tiền rút phải là bội số của 1.000đ (Ví dụ: 50.000đ, 60.000đ, 100.000đ...).",
+      };
+    }
+    return {
+      isValid: true,
+      hint: `✓ Hợp lệ · Số dư còn lại sau khi rút: ${formatVnd(wallet.balance - parsedAmount)}`,
+    };
+  };
+
+  const amountValidation = validateWithdrawal();
+
+  // Xử lý lưu ngân hàng chặt chẽ + lưu cả client và server
   const handleSaveBank = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bankName || !accountNo.trim() || !accountName.trim()) {
-      return onNotify("Vui lòng điền đầy đủ thông tin ngân hàng!");
+    const cleanNo = accountNo.replace(/\D/g, "");
+    const cleanName = accountName.trim().toUpperCase();
+
+    if (!bankName) {
+      return onNotify("⚠️ Vui lòng chọn ngân hàng nhận tiền!");
     }
+    if (!cleanNo || cleanNo.length < 6 || cleanNo.length > 20) {
+      return onNotify("⚠️ Số tài khoản ngân hàng không hợp lệ (phải từ 6 đến 20 chữ số)!");
+    }
+    if (!cleanName || cleanName.length < 3) {
+      return onNotify("⚠️ Tên chủ tài khoản phải có ít nhất 3 ký tự!");
+    }
+    if (/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(cleanName)) {
+      return onNotify("⚠️ Tên chủ tài khoản chỉ gồm chữ cái, không chứa số hoặc ký tự đặc biệt!");
+    }
+
+    // 1. Lưu ngay vào localStorage
+    try {
+      localStorage.setItem(
+        "dealhoan_bank_info_" + user.id,
+        JSON.stringify({
+          bank_name: bankName,
+          bank_account_no: cleanNo,
+          bank_account_name: cleanName,
+        })
+      );
+    } catch {}
+
+    setAccountNo(cleanNo);
+    setAccountName(cleanName);
 
     try {
       setSavingBank(true);
@@ -150,51 +329,44 @@ export default function AccountModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           bank_name: bankName,
-          bank_account_no: accountNo.trim(),
-          bank_account_name: accountName.trim().toUpperCase(),
+          bank_account_no: cleanNo,
+          bank_account_name: cleanName,
         }),
       });
       const data = await res.json();
       if (res.ok) {
         setBankSavedSuccess(true);
-        setTimeout(() => setBankSavedSuccess(false), 2500);
+        setTimeout(() => setBankSavedSuccess(false), 3000);
         onNotify("✅ Đã lưu thông tin tài khoản ngân hàng");
-        if (data.wallet) {
-          setWallet((prev) => ({
-            ...prev,
-            bank_name: data.wallet.bank_name,
-            bank_account_no: data.wallet.bank_account_no,
-            bank_account_name: data.wallet.bank_account_name,
-          }));
-        }
+        setWallet((prev) => ({
+          ...prev,
+          bank_name: bankName,
+          bank_account_no: cleanNo,
+          bank_account_name: cleanName,
+        }));
       } else {
         onNotify(data.error || "Không thể lưu thông tin ngân hàng.");
       }
     } catch {
-      onNotify("Lỗi kết nối máy chủ.");
+      onNotify("✅ Đã ghi nhớ tài khoản trên thiết bị của bạn");
+      setWallet((prev) => ({
+        ...prev,
+        bank_name: bankName,
+        bank_account_no: cleanNo,
+        bank_account_name: cleanName,
+      }));
     } finally {
       setSavingBank(false);
     }
   };
 
-  // Xử lý rút tiền
+  // Xử lý rút tiền với multi-rule validation
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
     setWithdrawError("");
-    const amountNum = Number(withdrawAmount.replace(/\D/g, ""));
 
-    if (!amountNum || amountNum < 50000) {
-      setWithdrawError("Số tiền rút tối thiểu là 50.000đ.");
-      return;
-    }
-
-    if (amountNum > wallet.balance) {
-      setWithdrawError(`Số dư khả dụng (${formatVnd(wallet.balance)}) không đủ để rút.`);
-      return;
-    }
-
-    if (!wallet.bank_account_no || !wallet.bank_name) {
-      setWithdrawError("Vui lòng lưu thông tin ngân hàng trước khi rút tiền.");
+    if (!amountValidation.isValid) {
+      setWithdrawError(amountValidation.error || "Số tiền rút không hợp lệ.");
       return;
     }
 
@@ -203,7 +375,12 @@ export default function AccountModal({
       const res = await fetch("/api/wallet/withdraw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: amountNum }),
+        body: JSON.stringify({
+          amount: parsedAmount,
+          bank_name: wallet.bank_name || bankName,
+          bank_account_no: wallet.bank_account_no || accountNo,
+          bank_account_name: wallet.bank_account_name || accountName,
+        }),
       });
       const data = await res.json();
 
@@ -212,8 +389,8 @@ export default function AccountModal({
         setWithdrawAmount("");
         setWallet((prev) => ({
           ...prev,
-          balance: typeof data.newBalance === "number" ? data.newBalance : Math.max(0, prev.balance - amountNum),
-          total_withdrawn: prev.total_withdrawn + amountNum,
+          balance: typeof data.newBalance === "number" ? data.newBalance : Math.max(0, prev.balance - parsedAmount),
+          total_withdrawn: prev.total_withdrawn + parsedAmount,
         }));
         if (data.request) {
           setHistory((prev) => [data.request, ...prev]);
@@ -251,8 +428,6 @@ export default function AccountModal({
     }
     return name.slice(0, 2).toUpperCase();
   };
-
-  const isBankReady = Boolean(wallet.bank_account_no && wallet.bank_name);
 
   return (
     <div className="account-overlay" onClick={onClose}>
@@ -453,7 +628,7 @@ export default function AccountModal({
                         inputMode="numeric"
                         placeholder="Nhập số tài khoản..."
                         value={accountNo}
-                        onChange={(e) => setAccountNo(e.target.value)}
+                        onChange={(e) => setAccountNo(e.target.value.replace(/\D/g, ""))}
                         className="account-input input-has-leading"
                       />
                     </div>
@@ -534,6 +709,26 @@ export default function AccountModal({
                   <span className="input-trailing-suffix">đ</span>
                 </div>
 
+                {/* Live validation feedback message */}
+                {amountValidation.error && (
+                  <div className="withdraw-feedback-msg error">
+                    <span>⚠️</span>
+                    <span>{amountValidation.error}</span>
+                  </div>
+                )}
+                {!amountValidation.error && amountValidation.isValid && amountValidation.hint && (
+                  <div className="withdraw-feedback-msg success">
+                    <span>✓</span>
+                    <span>{amountValidation.hint}</span>
+                  </div>
+                )}
+                {!amountValidation.error && !amountValidation.isValid && amountValidation.hint && (
+                  <div className="withdraw-feedback-msg neutral">
+                    <span>💡</span>
+                    <span>{amountValidation.hint}</span>
+                  </div>
+                )}
+
                 {/* Preset Chips */}
                 <div className="withdraw-presets">
                   <button type="button" onClick={() => setPresetAmount(50000)} className="preset-btn">
@@ -559,18 +754,32 @@ export default function AccountModal({
                 {/* Primary Button */}
                 <button
                   type="submit"
-                  disabled={withdrawing || wallet.balance < 50000 || !isBankReady}
-                  className={`account-btn-withdraw ${!isBankReady ? "btn-needs-bank" : ""}`}
+                  disabled={withdrawing || !amountValidation.isValid}
+                  className={`account-btn-withdraw ${
+                    !isBankReady
+                      ? "btn-needs-bank"
+                      : pendingWithdrawal
+                      ? "btn-pending"
+                      : ""
+                  }`}
                 >
-                  <span className="btn-lightning">⚡</span>
+                  <span className="btn-lightning">
+                    {pendingWithdrawal ? "⏳" : "⚡"}
+                  </span>
                   <span>
                     {withdrawing
-                      ? "Đang gửi yêu cầu…"
+                      ? "Đang gửi yêu cầu rút tiền…"
                       : !isBankReady
                       ? "Vui lòng lưu thông tin ngân hàng trước"
+                      : pendingWithdrawal
+                      ? `Đang có lệnh rút ${formatVnd(pendingWithdrawal.amount)} chờ xử lý`
                       : wallet.balance < 50000
                       ? "Số dư khả dụng chưa đủ 50.000đ"
-                      : "Xác nhận rút tiền →"}
+                      : !withdrawAmount
+                      ? "Nhập số tiền muốn rút"
+                      : !amountValidation.isValid
+                      ? "Số tiền rút chưa hợp lệ"
+                      : `Xác nhận rút ${formatVnd(parsedAmount)} →`}
                   </span>
                 </button>
 
