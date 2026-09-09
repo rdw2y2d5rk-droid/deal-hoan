@@ -1777,12 +1777,25 @@ h2,
   font-style: normal;
   font-weight: 800;
 }
-.demo-receipt > .primary {
+.demo-receipt {
+  user-select: none;
+}
+.demo-receipt > .primary,
+.demo-receipt .demo-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 50px;
   margin-top: 18px;
   border-radius: 13px;
   box-shadow: 0 8px 20px rgba(238, 77, 45, 0.28);
+  font-weight: 700;
+  font-size: 15px;
+  color: #ffffff;
+  cursor: default;
+  pointer-events: none;
+  user-select: none;
 }
 .demo-receipt-foot {
   margin: 10px 0 0;

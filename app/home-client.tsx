@@ -189,9 +189,9 @@ function Receipt({
   );
 }
 
-function DemoReceipt({ onBuy }: { onBuy: () => void }) {
+function DemoReceipt() {
   return (
-    <div className="demo-receipt">
+    <div className="demo-receipt" aria-label="Minh hoạ cách tính hoàn tiền">
       <div className="demo-receipt-head">
         <b>Bạn thực trả bao nhiêu?</b>
         <span>🔥 Deal Score 94</span>
@@ -239,12 +239,11 @@ function DemoReceipt({ onBuy }: { onBuy: () => void }) {
           <em>tiết kiệm 26%</em>
         </span>
       </div>
-      <button className="primary" onClick={onBuy}>
+      <div className="primary demo-btn" aria-hidden="true">
         Mua ngay &amp; Nhận hoàn tiền →
-      </button>
+      </div>
       <p className="demo-receipt-foot">
-        Ghi nhận trong 24 giờ · nhận hoàn sau 14–15 ngày ·{" "}
-        <a href="#how">điều kiện</a>
+        Ghi nhận trong 24 giờ · nhận hoàn sau 14–15 ngày · điều kiện
       </p>
     </div>
   );
@@ -1157,7 +1156,7 @@ export default function HomeClient({
           <div className="demo">
             <span className="float top">▼ Giá thấp nhất 30 ngày</span>
             <span className="float bottom">✓ +77.000đ hoàn sau 14 ngày</span>
-            <DemoReceipt onBuy={() => setBuyOpen(true)} />
+            <DemoReceipt />
           </div>
         </div>
       </section>
