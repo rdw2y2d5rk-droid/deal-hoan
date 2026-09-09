@@ -1151,6 +1151,14 @@ h2,
   border: 0;
   border-left: 1px solid #ececec;
 }
+.stats-desc {
+  font-size: 13px;
+  color: #737373;
+  line-height: 1.35;
+}
+.stats-br {
+  display: none;
+}
 .platforms {
   position: relative;
   display: grid;
@@ -3257,12 +3265,12 @@ select.account-input.select-bank-field:focus {
   .stats {
     display: flex;
     flex-wrap: nowrap;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
     width: 100%;
     margin-top: 20px;
     margin-bottom: 0;
-    padding: 12px 6px;
+    padding: 13px 6px 12px;
     background: #ffffff;
     border: 1px solid #f0f0f0;
     border-radius: 14px;
@@ -3274,26 +3282,41 @@ select.account-input.select-bank-field:focus {
     flex: 1 1 0;
     min-width: 0;
     text-align: center;
-    font-size: 11px;
-    line-height: 1.3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
     padding: 0 4px;
     color: #737373;
   }
   .stats b {
     display: block;
-    font-size: 15.5px;
+    font-size: 16px;
     font-weight: 800;
     font-family: Archivo, sans-serif;
     letter-spacing: -0.3px;
     color: #171717;
-    margin-bottom: 2px;
+    line-height: 1.2;
+    margin-bottom: 3px;
     white-space: nowrap;
   }
+  .stats-desc {
+    font-size: 11px;
+    line-height: 1.35;
+    color: #737373;
+    text-align: center;
+    display: block;
+    width: 100%;
+  }
+  .stats-br {
+    display: block;
+  }
   .stats hr {
-    height: 28px;
+    width: 1px;
+    height: 32px;
+    background: #ebebeb;
     border: 0;
-    border-left: 1px solid #ebebeb;
-    margin: 0;
+    margin: auto 0;
     flex: none;
   }
 
@@ -3965,14 +3988,20 @@ select.account-input.select-bank-field:focus {
     font-size: 11px;
   }
   .stats {
-    padding: 10px 4px;
+    padding: 11px 4px 10px;
   }
   .stats > div {
-    font-size: 10px;
     padding: 0 2px;
   }
   .stats b {
-    font-size: 14px;
+    font-size: 14.5px;
+  }
+  .stats-desc {
+    font-size: 10px;
+    line-height: 1.3;
+  }
+  .stats hr {
+    height: 28px;
   }
   .flash-top {
     padding: 10px 12px;
