@@ -24,23 +24,33 @@ export interface WithdrawalItem {
 }
 
 const VN_BANKS = [
-  "MB Bank (Ngân hàng Quân Đội)",
-  "Vietcombank (Ngoại thương VN)",
-  "Techcombank (Kỹ thương VN)",
-  "ACB (Á Châu)",
-  "VPBank (Việt Nam Thịnh Vượng)",
-  "BIDV (Đầu tư & Phát triển VN)",
-  "TPBank (Tiên Phong)",
-  "Agribank (Nông nghiệp VN)",
-  "VIB (Quốc tế VN)",
-  "Sacombank (Sài Gòn Thương Tín)",
-  "HDBank (Phát triển TP.HCM)",
-  "SHB (Sài Gòn - Hà Nội)",
-  "MSB (Hàng Hải)",
-  "OCB (Phương Đông)",
-  "SeABank (Đông Nam Á)",
-  "MoMo (Ví điện tử)",
-  "ZaloPay (Ví điện tử)",
+  "Vietcombank (VCB)",
+  "MB Bank (MBB)",
+  "Techcombank (TCB)",
+  "VietinBank (CTG)",
+  "BIDV",
+  "ACB",
+  "VPBank",
+  "TPBank",
+  "Agribank",
+  "Sacombank",
+  "VIB",
+  "HDBank",
+  "SHB",
+  "MSB",
+  "OCB",
+  "SeABank",
+  "LPBank",
+  "Nam A Bank",
+  "Eximbank",
+  "Bac A Bank",
+  "PVcomBank",
+  "BaoViet Bank",
+  "Kienlongbank",
+  "VietABank",
+  "Saigonbank",
+  "Shinhan Bank",
+  "Woori Bank",
 ];
 
 function formatVnd(amount: number) {
@@ -83,6 +93,7 @@ export default function AccountModal({
     bank_account_name: "",
   });
   const [history, setHistory] = useState<WithdrawalItem[]>([]);
+  const [isEditingBank, setIsEditingBank] = useState(false);
 
   // Form Ngân hàng
   const [bankName, setBankName] = useState(VN_BANKS[0]);
@@ -108,6 +119,9 @@ export default function AccountModal({
           setBankName(data.wallet.bank_name || VN_BANKS[0]);
           setAccountNo(data.wallet.bank_account_no || "");
           setAccountName(data.wallet.bank_account_name || "");
+          if (!data.wallet.bank_account_no) {
+            setIsEditingBank(true);
+          }
         }
       })
       .catch((err) => console.warn("Fetch wallet error:", err));
@@ -147,8 +161,9 @@ export default function AccountModal({
       const data = await res.json();
       if (res.ok) {
         setBankSavedSuccess(true);
-        setTimeout(() => setBankSavedSuccess(false), 3000);
-        onNotify("✅ Đã lưu thông tin tài khoản ngân hàng");
+        setTimeout(() => setBankSavedSuccess(false), 2500);
+        onNotify("✅ Đã lưu tài khoản ngân hàng");
+        setIsEditingBank(false);
         if (data.wallet) {
           setWallet((prev) => ({
             ...prev,
@@ -184,7 +199,8 @@ export default function AccountModal({
     }
 
     if (!wallet.bank_account_no || !wallet.bank_name) {
-      setWithdrawError("Vui lòng nhập và bấm Lưu tài khoản ngân hàng trước.");
+      setWithdrawError("Vui lòng cập nhật tài khoản ngân hàng trước.");
+      setIsEditingBank(true);
       return;
     }
 
@@ -200,7 +216,6 @@ export default function AccountModal({
       if (res.ok) {
         onNotify(`🎉 ${data.message || "Tạo yêu cầu rút tiền thành công!"}`);
         setWithdrawAmount("");
-        // Cập nhật lại số dư và lịch sử
         setWallet((prev) => ({
           ...prev,
           balance: typeof data.newBalance === "number" ? data.newBalance : Math.max(0, prev.balance - amountNum),
@@ -242,17 +257,20 @@ export default function AccountModal({
         <div className="account-modal-head">
           <div className="account-profile-info">
             {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={avatarUrl} alt={displayName} className="account-avatar-img" />
             ) : (
               <div className="account-avatar-fallback">{displayName.charAt(0).toUpperCase()}</div>
             )}
-            <div>
-              <h3 className="account-user-name">{displayName}</h3>
-              <p className="account-user-email">{user.email}</p>
-              <div className="account-ref-badge" onClick={copyRefCode} title="Bấm để copy mã giới thiệu">
-                <span>Mã giới thiệu: <b>{refCode}</b></span>
-                <i>📋</i>
+            <div className="account-profile-texts">
+              <div className="account-name-row">
+                <h3 className="account-user-name">{displayName}</h3>
+                <div className="account-ref-badge" onClick={copyRefCode} title="Bấm để copy mã giới thiệu">
+                  <span>Mã: <b>{refCode}</b></span>
+                  <i>📋</i>
+                </div>
               </div>
+              <p className="account-user-email">{user.email}</p>
             </div>
           </div>
           <button className="modal-close" onClick={onClose} title="Đóng">
@@ -268,7 +286,7 @@ export default function AccountModal({
               <span>Số dư khả dụng</span>
             </div>
             <div className="wallet-card-val">{formatVnd(wallet.balance)}</div>
-            <div className="wallet-card-sub">Có thể rút về ngân hàng</div>
+            <div className="wallet-card-sub">Có thể rút ngay</div>
           </div>
 
           <div className="wallet-card wallet-card-amber">
@@ -277,16 +295,16 @@ export default function AccountModal({
               <span>Chờ duyệt</span>
             </div>
             <div className="wallet-card-val">{formatVnd(wallet.pending_balance)}</div>
-            <div className="wallet-card-sub">Đang trong hạn đổi trả 14 ngày</div>
+            <div className="wallet-card-sub">Sau 14–15 ngày</div>
           </div>
 
           <div className="wallet-card wallet-card-neutral">
             <div className="wallet-card-header">
               <span className="wallet-dot neutral-dot" />
-              <span>Tổng tiền đã rút</span>
+              <span>Đã nhận</span>
             </div>
             <div className="wallet-card-val">{formatVnd(wallet.total_withdrawn)}</div>
-            <div className="wallet-card-sub">Tiền đã về tài khoản ngân hàng</div>
+            <div className="wallet-card-sub">Về ngân hàng</div>
           </div>
         </div>
 
@@ -296,101 +314,131 @@ export default function AccountModal({
             className={`account-tab-btn ${activeTab === "withdraw" ? "active" : ""}`}
             onClick={() => setActiveTab("withdraw")}
           >
-            💸 Rút tiền & Ngân hàng
+            💸 Rút tiền
           </button>
           <button
             className={`account-tab-btn ${activeTab === "history" ? "active" : ""}`}
             onClick={() => setActiveTab("history")}
           >
-            📋 Lịch sử rút tiền {history.length > 0 && <span className="tab-count">{history.length}</span>}
+            📋 Lịch sử rút {history.length > 0 && <span className="tab-count">{history.length}</span>}
           </button>
         </div>
 
         {/* Tab Content 1: Rút tiền & Cấu hình ngân hàng */}
         {activeTab === "withdraw" && (
           <div className="account-tab-pane">
-            {/* Box 1: Cài đặt tài khoản ngân hàng */}
-            <div className="account-section-card">
-              <div className="section-card-title">
-                <span>🏦 Tài khoản ngân hàng nhận tiền</span>
-                {wallet.bank_account_no && (
-                  <span className="saved-badge">✓ Đã thiết lập</span>
-                )}
+            {/* Box 1: Ngân hàng nhận tiền */}
+            {wallet.bank_account_no && !isEditingBank ? (
+              <div className="bank-saved-card">
+                <div className="bank-saved-left">
+                  <div className="bank-saved-badge">🏦 Ngân hàng nhận tiền</div>
+                  <div className="bank-saved-name">{wallet.bank_name}</div>
+                  <div className="bank-saved-acc">
+                    Số TK: <b>{wallet.bank_account_no}</b> · <span>{wallet.bank_account_name}</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingBank(true)}
+                  className="bank-edit-btn"
+                >
+                  Thay đổi
+                </button>
               </div>
-              <form onSubmit={handleSaveBank} className="bank-form">
-                <div className="form-group">
-                  <label>Ngân hàng / Ví nhận tiền</label>
-                  <select
-                    value={bankName}
-                    onChange={(e) => setBankName(e.target.value)}
-                    className="account-input"
-                  >
-                    {VN_BANKS.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                  </select>
+            ) : (
+              <div className="account-section-card">
+                <div className="section-card-title">
+                  <span>🏦 {wallet.bank_account_no ? "Cập nhật ngân hàng nhận tiền" : "Thiết lập ngân hàng nhận tiền"}</span>
+                  {wallet.bank_account_no && (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingBank(false)}
+                      className="form-close-link"
+                    >
+                      Đóng
+                    </button>
+                  )}
                 </div>
-
-                <div className="form-row-2">
+                <form onSubmit={handleSaveBank} className="bank-form">
                   <div className="form-group">
-                    <label>Số tài khoản / Số MoMo</label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="VD: 1903688888..."
-                      value={accountNo}
-                      onChange={(e) => setAccountNo(e.target.value)}
+                    <label>Ngân hàng</label>
+                    <select
+                      value={bankName}
+                      onChange={(e) => setBankName(e.target.value)}
                       className="account-input"
-                    />
+                    >
+                      {VN_BANKS.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <div className="form-group">
-                    <label>Tên chủ tài khoản (IN HOA)</label>
-                    <input
-                      type="text"
-                      placeholder="VD: NGUYEN VAN A"
-                      value={accountName}
-                      onChange={(e) => setAccountName(e.target.value.toUpperCase())}
-                      className="account-input"
-                    />
-                  </div>
-                </div>
 
-                <div className="form-submit-row">
-                  <button type="submit" disabled={savingBank} className="account-btn-save">
-                    {savingBank ? "Đang lưu…" : bankSavedSuccess ? "✓ Đã lưu thành công" : "Lưu thông tin ngân hàng"}
-                  </button>
-                  <span className="form-help-text">Thông tin được bảo mật và dùng cho lệnh chuyển khoản Napas247.</span>
-                </div>
-              </form>
-            </div>
+                  <div className="form-row-2">
+                    <div className="form-group">
+                      <label>Số tài khoản</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Nhập số tài khoản..."
+                        value={accountNo}
+                        onChange={(e) => setAccountNo(e.target.value)}
+                        className="account-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Tên chủ tài khoản</label>
+                      <input
+                        type="text"
+                        placeholder="VD: NGUYEN VAN A"
+                        value={accountName}
+                        onChange={(e) => setAccountName(e.target.value.toUpperCase())}
+                        className="account-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-submit-row">
+                    <button type="submit" disabled={savingBank} className="account-btn-save">
+                      {savingBank ? "Đang lưu…" : bankSavedSuccess ? "✓ Đã lưu" : "Lưu tài khoản"}
+                    </button>
+                    {wallet.bank_account_no && (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingBank(false)}
+                        className="account-btn-cancel"
+                      >
+                        Huỷ
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+            )}
 
             {/* Box 2: Tạo lệnh rút tiền */}
             <div className="account-section-card withdraw-card">
               <div className="section-card-title">
-                <span>💳 Yêu cầu rút tiền về tài khoản</span>
+                <span>💳 Số tiền muốn rút</span>
                 <span className="min-withdraw-badge">Tối thiểu 50.000đ</span>
               </div>
 
               <form onSubmit={handleWithdraw} className="withdraw-form">
-                <div className="form-group">
-                  <label>Số tiền muốn rút (VNĐ)</label>
-                  <div className="withdraw-input-wrap">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="Nhập số tiền (từ 50.000đ)"
-                      value={withdrawAmount ? Number(withdrawAmount).toLocaleString("vi-VN") : ""}
-                      onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, "");
-                        setWithdrawAmount(raw);
-                        setWithdrawError("");
-                      }}
-                      className="account-input withdraw-amount-input"
-                    />
-                    <span className="currency-suffix">đ</span>
-                  </div>
+                <div className="withdraw-input-wrap">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Nhập số tiền (tối thiểu 50.000đ)"
+                    value={withdrawAmount ? Number(withdrawAmount).toLocaleString("vi-VN") : ""}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/\D/g, "");
+                      setWithdrawAmount(raw);
+                      setWithdrawError("");
+                    }}
+                    className="account-input withdraw-amount-input"
+                  />
+                  <span className="currency-suffix">đ</span>
                 </div>
 
                 {/* Preset Chips */}
@@ -421,11 +469,17 @@ export default function AccountModal({
                   disabled={withdrawing || wallet.balance < 50000 || !wallet.bank_account_no}
                   className="account-btn-withdraw"
                 >
-                  {withdrawing ? "Đang gửi yêu cầu…" : "Xác nhận rút tiền →"}
+                  {withdrawing
+                    ? "Đang gửi yêu cầu…"
+                    : !wallet.bank_account_no
+                    ? "Vui lòng lưu thông tin ngân hàng trước"
+                    : wallet.balance < 50000
+                    ? "Số dư khả dụng chưa đủ 50.000đ"
+                    : "Xác nhận rút tiền →"}
                 </button>
 
                 <div className="withdraw-notice">
-                  ⚡ Tiền hoàn sẽ được chuyển trực tiếp về tài khoản <b>{wallet.bank_name || "ngân hàng"}</b> trong <b>24–48 giờ làm việc</b> (không tính thứ 7 & chủ nhật).
+                  ⚡ Chuyển khoản Napas 24/7 về <b>{wallet.bank_name || "ngân hàng"}</b> trong <b>24–48h làm việc</b> (trừ T7 & CN).
                 </div>
               </form>
             </div>

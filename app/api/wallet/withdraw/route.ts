@@ -20,7 +20,7 @@ let demoHistory: WithdrawalRecord[] = [
     id: "w-demo-1",
     user_id: "demo-user",
     amount: 200000,
-    bank_name: "MB Bank (Ngân hàng Quân Đội)",
+    bank_name: "MB Bank (MBB)",
     bank_account_no: "0988889999",
     bank_account_name: "NGUYEN VAN DEMO",
     status: "completed",

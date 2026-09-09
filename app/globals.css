@@ -2069,7 +2069,7 @@ h2,
 }
 .account-modal {
   position: relative;
-  width: min(640px, 100%);
+  width: min(580px, 100%);
   max-height: calc(100vh - 40px);
   display: flex;
   flex-direction: column;
@@ -2085,19 +2085,30 @@ h2,
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 22px 24px 18px;
+  padding: 20px 22px 16px;
   border-bottom: 1px solid #f3f4f6;
-  background: linear-gradient(180deg, #fff8f5 0%, #ffffff 100%);
+  background: linear-gradient(180deg, #fffaf7 0%, #ffffff 100%);
 }
 .account-profile-info {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 13px;
+}
+.account-profile-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.account-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .account-avatar-img,
 .account-avatar-fallback {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
@@ -2107,32 +2118,32 @@ h2,
   place-items: center;
   background: linear-gradient(135deg, #ffedd5, #fed7aa);
   color: #c2410c;
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 800;
   border: 2px solid #fff;
   box-shadow: 0 2px 8px rgba(234, 88, 12, 0.15);
 }
 .account-user-name {
-  margin: 0 0 3px;
-  font-size: 18px;
+  margin: 0;
+  font-size: 17px;
   font-weight: 800;
   color: #171717;
   letter-spacing: -0.3px;
 }
 .account-user-email {
-  margin: 0 0 6px;
-  font-size: 13px;
+  margin: 0;
+  font-size: 12.5px;
   color: #6b7280;
 }
 .account-ref-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 9px;
+  gap: 5px;
+  padding: 2px 8px;
   background: #ffffff;
   border: 1px dashed #fdba74;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 11.5px;
   color: #c2410c;
   cursor: pointer;
   transition: all 0.15s;
@@ -2144,7 +2155,7 @@ h2,
 }
 .account-ref-badge i {
   font-style: normal;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 /* 3 Wallet Stat Cards */
@@ -2270,19 +2281,75 @@ h2,
 .account-tab-pane {
   flex: 1;
   overflow-y: auto;
-  padding: 18px 24px;
+  padding: 16px 22px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+}
+.bank-saved-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  gap: 12px;
+}
+.bank-saved-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.bank-saved-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.bank-saved-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.bank-saved-acc {
+  font-size: 12px;
+  color: #475569;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bank-saved-acc b {
+  color: #0f172a;
+}
+.bank-edit-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.bank-edit-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
 }
 .account-section-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 16px 18px;
+  border-radius: 14px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 .account-section-card.withdraw-card {
   border-color: #fed7aa;
@@ -2295,6 +2362,20 @@ h2,
   font-size: 13.5px;
   font-weight: 800;
   color: #1f2937;
+}
+.form-close-link {
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+.form-close-link:hover {
+  color: #ef4444;
 }
 .saved-badge {
   font-size: 11px;
@@ -2385,6 +2466,22 @@ select.account-input {
 .account-btn-save:disabled {
   opacity: 0.65;
   cursor: wait;
+}
+.account-btn-cancel {
+  height: 38px;
+  padding: 0 14px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.account-btn-cancel:hover {
+  background: #e2e8f0;
+  color: #0f172a;
 }
 .form-help-text {
   font-size: 11.5px;
@@ -3622,6 +3719,19 @@ select.account-input {
   }
   .account-tab-pane {
     padding: 14px 16px;
+  }
+  .bank-saved-card {
+    padding: 10px 12px;
+  }
+  .bank-saved-name {
+    font-size: 13.5px;
+  }
+  .bank-saved-acc {
+    font-size: 11.5px;
+  }
+  .bank-edit-btn {
+    padding: 5px 10px;
+    font-size: 11px;
   }
   .form-row-2 {
     grid-template-columns: 1fr;

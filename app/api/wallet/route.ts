@@ -16,7 +16,7 @@ let demoWallet: WalletData = {
   balance: 154000,
   pending_balance: 77000,
   total_withdrawn: 200000,
-  bank_name: "MB Bank (Ngân hàng Quân Đội)",
+  bank_name: "MB Bank (MBB)",
   bank_account_no: "0988889999",
   bank_account_name: "NGUYEN VAN DEMO",
 };

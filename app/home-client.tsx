@@ -1208,7 +1208,7 @@ export default function HomeClient({
               ],
               [
                 "Rút tiền về tài khoản",
-                "Cashback được duyệt vào ví, rút về ngân hàng hoặc Momo từ 50.000đ.",
+                "Cashback được duyệt vào ví, rút về tài khoản ngân hàng từ 50.000đ.",
               ],
             ].map((s, i) => (
               <div className="step" key={s[0]}>
