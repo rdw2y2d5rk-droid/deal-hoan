@@ -974,11 +974,6 @@ export default function HomeClient({
         <div className="heading">
           <div>
             <h2>Deal hot hôm nay</h2>
-            <p>
-              Deal Score chấm theo mức giảm, cashback, đánh giá shop và lượng
-              đã bán.
-            </p>
-            <p className="deal-source">{SOURCE_NOTE[source]}</p>
           </div>
           <a>Xem tất cả →</a>
         </div>
