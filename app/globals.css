@@ -1028,6 +1028,14 @@ h2,
     transform: none;
   }
 }
+@keyframes bottom-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
 @keyframes result-out {
   from {
     opacity: 1;
@@ -1953,6 +1961,672 @@ h2,
   }
 }
 /* ==========================================================================
+   USER ACCOUNT & WALLET DASHBOARD
+   ========================================================================== */
+.account .account-wallet-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #ffffff;
+  border: 1.5px solid #bbf7d0;
+  color: #166534;
+  padding: 4px 10px 4px 4px;
+  border-radius: 99px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  height: 36px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.account .account-wallet-btn:hover {
+  background: #f0fdf4;
+  border-color: #86efac;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);
+}
+.account-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 800;
+  font-size: 11.5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.account-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.account-name {
+  font-weight: 700;
+  color: #171717;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-balance-tag {
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 2.5px 8px;
+  border-radius: 99px;
+  border: 1px solid #bbf7d0;
+  letter-spacing: -0.2px;
+}
+.account .account-logout-btn {
+  background: transparent;
+  border: 1px solid #e5e5e5;
+  color: #737373;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 9px;
+  height: 36px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.account .account-logout-btn:hover {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+.account .account-login-btn {
+  background: #ee4d2d;
+  color: #fff;
+  border: 0;
+  border-radius: 9px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.account .account-login-btn:hover {
+  background: #d73211;
+}
+
+/* Modal Overlay & Container */
+.account-overlay {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(23, 23, 23, 0.6);
+  backdrop-filter: blur(6px);
+  animation: overlay-in 0.2s ease;
+}
+.account-modal {
+  position: relative;
+  width: min(640px, 100%);
+  max-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  animation: modal-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Modal Header */
+.account-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid #f3f4f6;
+  background: linear-gradient(180deg, #fff8f5 0%, #ffffff 100%);
+}
+.account-profile-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.account-avatar-img,
+.account-avatar-fallback {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.account-avatar-fallback {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #ffedd5, #fed7aa);
+  color: #c2410c;
+  font-size: 20px;
+  font-weight: 800;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.15);
+}
+.account-user-name {
+  margin: 0 0 3px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #171717;
+  letter-spacing: -0.3px;
+}
+.account-user-email {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #6b7280;
+}
+.account-ref-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  background: #ffffff;
+  border: 1px dashed #fdba74;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #c2410c;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.account-ref-badge:hover {
+  background: #fff7ed;
+  border-color: #ea580c;
+}
+.account-ref-badge i {
+  font-style: normal;
+  font-size: 12px;
+}
+
+/* 3 Wallet Stat Cards */
+.account-wallet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px 24px;
+  background: #fafafa;
+  border-bottom: 1px solid #f3f4f6;
+}
+.wallet-card {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.wallet-card-green {
+  background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
+  border-color: #bbf7d0;
+}
+.wallet-card-green .wallet-card-val {
+  color: #15803d;
+}
+.wallet-card-amber {
+  background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #fde68a;
+}
+.wallet-card-amber .wallet-card-val {
+  color: #b45309;
+}
+.wallet-card-neutral {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-color: #e2e8f0;
+}
+.wallet-card-neutral .wallet-card-val {
+  color: #334155;
+}
+.wallet-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.wallet-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.green-dot {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
+}
+.amber-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+}
+.neutral-dot {
+  background: #94a3b8;
+  box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.25);
+}
+.wallet-card-val {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.4px;
+  line-height: 1.25;
+  margin-top: 3px;
+}
+.wallet-card-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 1px;
+  line-height: 1.3;
+}
+
+/* Tabs */
+.account-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+.account-tab-btn {
+  background: none;
+  border: none;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: -1px;
+  transition: all 0.15s;
+}
+.account-tab-btn:hover {
+  color: #171717;
+}
+.account-tab-btn.active {
+  color: #ee4d2d;
+  border-bottom-color: #ee4d2d;
+}
+.tab-count {
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 99px;
+}
+
+/* Tab Pane & Section Cards */
+.account-tab-pane {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.account-section-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.account-section-card.withdraw-card {
+  border-color: #fed7aa;
+  background: linear-gradient(180deg, #fffbf7 0%, #ffffff 100%);
+}
+.section-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #1f2937;
+}
+.saved-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1px solid #bbf7d0;
+}
+.min-withdraw-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1px solid #fde68a;
+}
+
+/* Forms */
+.bank-form,
+.withdraw-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.form-group label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #4b5563;
+}
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.account-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: #111827;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  box-sizing: border-box;
+}
+.account-input:focus {
+  border-color: #ee4d2d;
+  box-shadow: 0 0 0 3px rgba(238, 77, 45, 0.15);
+}
+select.account-input {
+  cursor: pointer;
+  appearance: auto;
+}
+.form-submit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+.account-btn-save {
+  height: 38px;
+  padding: 0 16px;
+  background: #171717;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.account-btn-save:hover {
+  background: #333;
+}
+.account-btn-save:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.form-help-text {
+  font-size: 11.5px;
+  color: #9ca3af;
+  line-height: 1.35;
+}
+
+/* Withdrawal Input & Presets */
+.withdraw-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.withdraw-amount-input {
+  height: 46px;
+  font-size: 19px;
+  font-weight: 900;
+  padding-right: 32px;
+  color: #15803d;
+}
+.currency-suffix {
+  position: absolute;
+  right: 14px;
+  font-weight: 800;
+  color: #9ca3af;
+  font-size: 16px;
+  pointer-events: none;
+}
+.withdraw-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+.preset-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.preset-btn:hover {
+  background: #ffedd5;
+  border-color: #fdba74;
+  color: #c2410c;
+}
+.preset-btn.preset-max {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+.preset-btn.preset-max:hover {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+.preset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.withdraw-error-banner {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.account-btn-withdraw {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ee4d2d 0%, #ea580c 100%);
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(238, 77, 45, 0.25);
+  transition: all 0.15s;
+  margin-top: 4px;
+}
+.account-btn-withdraw:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+.account-btn-withdraw:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.withdraw-notice {
+  font-size: 11.5px;
+  color: #78716c;
+  line-height: 1.5;
+  padding: 9px 12px;
+  background: #fff7ed;
+  border-radius: 8px;
+  border: 1px dashed #fed7aa;
+}
+.withdraw-notice b {
+  color: #c2410c;
+}
+
+/* History Tab */
+.history-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+.history-empty-icon {
+  font-size: 42px;
+  margin-bottom: 8px;
+}
+.history-empty h4 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 6px;
+}
+.history-empty p {
+  font-size: 12.5px;
+  color: #9ca3af;
+  margin: 0 auto;
+  max-width: 320px;
+  line-height: 1.5;
+}
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  background: #fafafa;
+  gap: 10px;
+}
+.history-amount {
+  font-size: 16px;
+  font-weight: 900;
+  color: #dc2626;
+  letter-spacing: -0.3px;
+}
+.history-bank {
+  font-size: 12px;
+  color: #4b5563;
+  margin-top: 2px;
+}
+.history-bank b {
+  color: #111827;
+}
+.history-time {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+.history-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.status-badge {
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.status-completed {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.status-pending {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+.history-note {
+  font-size: 11px;
+  color: #ef4444;
+  max-width: 140px;
+  text-align: right;
+}
+
+/* Modal Footer */
+.account-modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+}
+.account-signout-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.account-signout-btn:hover {
+  background: #fee2e2;
+}
+.account-close-btn {
+  height: 36px;
+  padding: 0 20px;
+  background: #e5e7eb;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.account-close-btn:hover {
+  background: #d1d5db;
+}
+
+/* ==========================================================================
    RESPONSIVE DESIGN BREAKPOINTS: PC, LAPTOP, TABLET & MOBILE
    ========================================================================== */
 
@@ -2217,6 +2891,30 @@ h2,
     font-weight: 700;
     border-radius: 9px;
     white-space: nowrap;
+  }
+  .account .account-wallet-btn {
+    height: 32px;
+    padding: 3px 8px 3px 3px;
+    gap: 5px;
+    font-size: 11.5px;
+  }
+  .account-avatar {
+    width: 22px;
+    height: 22px;
+    font-size: 10.5px;
+  }
+  .account-name {
+    max-width: 65px;
+    font-size: 11.5px;
+  }
+  .account-balance-tag {
+    font-size: 11px;
+    padding: 1.5px 5px;
+  }
+  .account .account-logout-btn {
+    height: 32px;
+    padding: 0 8px;
+    font-size: 11px;
   }
 
   /* Hero Section */
@@ -2869,6 +3567,78 @@ h2,
     line-height: 1.45;
   }
 
+  /* Account Modal Mobile Bottom Sheet */
+  .account-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .account-modal {
+    width: 100%;
+    max-height: 88vh;
+    border-radius: 22px 22px 0 0;
+    animation: bottom-sheet-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .account-modal-head {
+    padding: 16px 16px 14px;
+  }
+  .account-profile-info {
+    gap: 10px;
+  }
+  .account-avatar-img,
+  .account-avatar-fallback {
+    width: 42px;
+    height: 42px;
+  }
+  .account-user-name {
+    font-size: 16px;
+  }
+  .account-wallet-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+  .wallet-card {
+    padding: 10px 12px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .wallet-card-header {
+    font-size: 11px;
+  }
+  .wallet-card-val {
+    font-size: 16px;
+    margin-top: 0;
+  }
+  .wallet-card-sub {
+    display: none;
+  }
+  .account-tabs {
+    padding: 0 16px;
+  }
+  .account-tab-btn {
+    padding: 10px 10px;
+    font-size: 12.5px;
+  }
+  .account-tab-pane {
+    padding: 14px 16px;
+  }
+  .form-row-2 {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .form-submit-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .account-btn-save {
+    width: 100%;
+  }
+  .account-modal-foot {
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+  }
+
   /* Toast notification */
   .toast {
     right: auto;
@@ -2904,6 +3674,19 @@ h2,
   .account button {
     padding: 0 9px;
     font-size: 11px;
+  }
+  .account-name {
+    display: none;
+  }
+  .account .account-logout-btn {
+    display: none;
+  }
+  .account .account-wallet-btn {
+    padding: 3px 6px 3px 3px;
+  }
+  .account-balance-tag {
+    font-size: 10.5px;
+    padding: 1px 4px;
   }
   .hero h1 {
     font-size: 26px;

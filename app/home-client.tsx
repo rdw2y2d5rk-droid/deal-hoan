@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import type { User } from "@supabase/supabase-js";
+import AccountModal from "@/app/components/account-modal";
 import { formatPrice, formatSold } from "@/lib/deals/format";
 import type { Deal, DealBundle, Coupon, CouponCategory, Platform } from "@/lib/deals/types";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -323,17 +324,46 @@ export default function HomeClient({
   const [buyDontShow, setBuyDontShow] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [authPending, setAuthPending] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [userBalance, setUserBalance] = useState<number | null>(null);
+
+  const fetchUserBalance = () => {
+    fetch("/api/wallet")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.wallet && typeof data.wallet.balance === "number") {
+          setUserBalance(data.wallet.balance);
+        }
+      })
+      .catch(() => {});
+  };
 
   useEffect(() => {
-    if (!busy) {
-      setCalcTimer(0);
-      return;
-    }
+    if (!user) return;
+    let mounted = true;
+    fetch("/api/wallet")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (mounted && data?.wallet && typeof data.wallet.balance === "number") {
+          setUserBalance(data.wallet.balance);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!busy) return;
     const start = Date.now();
     const interval = setInterval(() => {
       setCalcTimer((Date.now() - start) / 1000);
     }, 100);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      setCalcTimer(0);
+    };
   }, [busy]);
 
   useEffect(() => {
@@ -370,7 +400,21 @@ export default function HomeClient({
   const signInWithGoogle = async () => {
     const supabase = createSupabaseBrowserClient();
     if (!supabase) {
-      notify("Chưa cấu hình Supabase — thêm URL và publishable key trước nhé.");
+      notify("Đang mở tài khoản Demo để trải nghiệm chức năng ví & rút tiền...");
+      const demoUser = {
+        id: "demo-user-123",
+        email: "demo@dealhoan.vn",
+        app_metadata: {},
+        user_metadata: {
+          full_name: "Nguyễn Văn Demo",
+          name: "Nguyễn Văn Demo",
+          avatar_url: "",
+        },
+        aud: "authenticated",
+        created_at: new Date().toISOString(),
+      } as User;
+      setUser(demoUser);
+      setAccountOpen(true);
       return;
     }
 
@@ -388,13 +432,19 @@ export default function HomeClient({
   };
   const signOut = async () => {
     const supabase = createSupabaseBrowserClient();
-    if (!supabase) return;
+    if (!supabase) {
+      setUser(null);
+      setUserBalance(null);
+      notify("Đã đăng xuất tài khoản Demo");
+      return;
+    }
 
     setAuthPending(true);
     const { error } = await supabase.auth.signOut();
     setAuthPending(false);
     if (error) return notify("Không thể đăng xuất. Vui lòng thử lại.");
     setUser(null);
+    setUserBalance(null);
     notify("Đã đăng xuất");
   };
   useEffect(() => {
@@ -557,11 +607,28 @@ export default function HomeClient({
           <div className="account">
             {user ? (
               <>
-                <span className="account-user" title={user.email ?? undefined}>
-                  {String(user.user_metadata.full_name ?? user.email ?? "Tài khoản").split(" ")[0]}
-                </span>
-                <button disabled={authPending} onClick={signOut}>
-                  {authPending ? "Đang xử lý…" : "Đăng xuất"}
+                <button
+                  type="button"
+                  className="account-wallet-btn"
+                  onClick={() => setAccountOpen(true)}
+                  title="Mở ví hoàn tiền & rút tiền"
+                >
+                  <span className="account-avatar">
+                    {user.user_metadata?.avatar_url ? (
+                      <img src={user.user_metadata.avatar_url} alt="" />
+                    ) : (
+                      (user.user_metadata?.full_name || user.email || "U").charAt(0).toUpperCase()
+                    )}
+                  </span>
+                  <span className="account-name">
+                    {String(user.user_metadata?.full_name ?? user.email ?? "Tài khoản").split(" ")[0]}
+                  </span>
+                  <span className="account-balance-tag">
+                    {userBalance !== null ? `${userBalance.toLocaleString("vi-VN")}đ` : "Ví tiền"}
+                  </span>
+                </button>
+                <button disabled={authPending} onClick={signOut} className="account-logout-btn">
+                  {authPending ? "…" : "Đăng xuất"}
                 </button>
               </>
             ) : (
@@ -1322,6 +1389,20 @@ export default function HomeClient({
             </footer>
           </div>
         </div>
+      )}
+      {accountOpen && user && (
+        <AccountModal
+          user={user}
+          onClose={() => {
+            setAccountOpen(false);
+            fetchUserBalance();
+          }}
+          onSignOut={() => {
+            setAccountOpen(false);
+            signOut();
+          }}
+          onNotify={notify}
+        />
       )}
       {toast && <div className="toast">{toast}</div>}
     </main>
