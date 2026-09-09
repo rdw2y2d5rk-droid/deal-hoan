@@ -1383,6 +1383,9 @@ h2,
   font-weight: 600;
   line-height: 1.35;
 }
+.flash-grid .placeholder {
+  height: 135px;
+}
 .flash-grid .placeholder b,
 .deal .placeholder > b {
   position: absolute;
@@ -3433,6 +3436,9 @@ select.account-input.select-bank-field:focus {
     padding: 14px;
     gap: 8px;
   }
+  .flash-grid .placeholder {
+    height: 150px;
+  }
 
   /* Hot Deals Section */
   .block {
@@ -3443,23 +3449,29 @@ select.account-input.select-bank-field:focus {
     padding-bottom: 32px;
   }
   .heading {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 2px;
   }
   .heading h2 {
-    font-size: 22px;
+    font-size: 20px;
+    margin: 0;
   }
   .heading p {
     font-size: 13px;
   }
   .heading > a {
     font-size: 13px;
-    align-self: flex-start;
+    font-weight: 700;
+    align-self: center;
+    white-space: nowrap;
   }
   .tabs {
     flex-wrap: nowrap;
-    margin: 14px -16px 18px;
+    margin: 10px -16px 12px;
     padding: 0 16px 6px;
     overflow-x: auto;
     scrollbar-width: none;
@@ -3469,37 +3481,37 @@ select.account-input.select-bank-field:focus {
   }
   .tabs button {
     flex: none;
-    padding: 8px 14px;
-    font-size: 12.5px;
+    padding: 7px 13px;
+    font-size: 12px;
     border-radius: 9px;
   }
   .deal-grid {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 10px;
   }
   .deal {
-    border-radius: 14px;
+    border-radius: 13px;
   }
   .deal .placeholder {
-    height: 180px;
+    height: 140px;
   }
   .deal-body {
-    padding: 14px;
-    gap: 7px;
+    padding: 11px 13px 12px;
+    gap: 5px;
   }
   .deal-body strong {
-    font-size: 14px;
+    font-size: 13.5px;
     line-height: 1.35;
   }
   .deal-body footer {
-    margin-top: 6px;
+    margin-top: 4px;
   }
   .deal-body footer b {
     font-size: 13px;
   }
   .deal-body footer a {
-    padding: 7px 13px;
-    font-size: 12.5px;
+    padding: 6px 12px;
+    font-size: 12px;
     border-radius: 8px;
   }
 
@@ -4025,6 +4037,12 @@ select.account-input.select-bank-field:focus {
     width: 24px;
     height: 24px;
     font-size: 13px;
+  }
+  .flash-grid .placeholder {
+    height: 135px;
+  }
+  .deal .placeholder {
+    height: 125px;
   }
   .receipt-foot {
     gap: 10px;
