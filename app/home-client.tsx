@@ -70,6 +70,23 @@ function LazadaLogo({ color = "#0F4C81" }: { color?: string }) {
   );
 }
 
+function HeartIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      className="deal-fav-icon"
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth={filled ? "1.5" : "2"}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  );
+}
+
 function Receipt({
   platform = "Shopee Mall",
   product,
@@ -295,7 +312,7 @@ export default function HomeClient({
   const [link, setLink] = useState("");
   const [result, setResult] = useState("");
   const [resultClosing, setResultClosing] = useState(false);
-  const [saved, setSaved] = useState<number[]>([]);
+  const [savedDealIds, setSavedDealIds] = useState<string[]>([]);
   const [tab, setTab] = useState(0);
   const [couponTab, setCouponTab] = useState<CouponCategory>("all");
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -396,6 +413,64 @@ export default function HomeClient({
   const notify = (m: string) => {
     setToast(m);
     setTimeout(() => setToast(""), 2400);
+  };
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("dealhoan_favorite_deal_ids");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setSavedDealIds(parsed.map(String));
+        }
+      }
+    } catch {
+      // ignore localStorage errors
+    }
+  }, []);
+
+  const toggleFavoriteDeal = (deal: Deal, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const dealId = String(deal.id);
+    const exists = savedDealIds.includes(dealId);
+    const nextIds = exists
+      ? savedDealIds.filter((id) => id !== dealId)
+      : [...savedDealIds, dealId];
+
+    setSavedDealIds(nextIds);
+
+    try {
+      localStorage.setItem("dealhoan_favorite_deal_ids", JSON.stringify(nextIds));
+
+      const rawDeals = localStorage.getItem("dealhoan_favorite_deals");
+      let storedDeals: Deal[] = [];
+      if (rawDeals) {
+        try {
+          const parsed = JSON.parse(rawDeals);
+          if (Array.isArray(parsed)) storedDeals = parsed;
+        } catch {
+          storedDeals = [];
+        }
+      }
+
+      if (exists) {
+        storedDeals = storedDeals.filter((d) => String(d?.id) !== dealId);
+      } else {
+        storedDeals = [deal, ...storedDeals.filter((d) => String(d?.id) !== dealId)].slice(0, 100);
+      }
+      localStorage.setItem("dealhoan_favorite_deals", JSON.stringify(storedDeals));
+    } catch {
+      // ignore localStorage errors
+    }
+
+    notify(
+      exists
+        ? "Đã bỏ lưu deal"
+        : "❤️ Đã lưu deal vào danh sách yêu thích",
+    );
   };
   const signInWithGoogle = async () => {
     const supabase = createSupabaseBrowserClient();
@@ -1017,6 +1092,19 @@ export default function HomeClient({
                       )}
                     </a>
                     <b>−{deal.discountPercent}%</b>
+                    <button
+                      type="button"
+                      className={`deal-fav-btn ${savedDealIds.includes(String(deal.id)) ? "is-active" : ""}`}
+                      aria-label={
+                        savedDealIds.includes(String(deal.id)) ? "Bỏ lưu deal" : "Lưu deal yêu thích"
+                      }
+                      title={
+                        savedDealIds.includes(String(deal.id)) ? "Bỏ lưu deal" : "Lưu deal yêu thích"
+                      }
+                      onClick={(e) => toggleFavoriteDeal(deal, e)}
+                    >
+                      <HeartIcon filled={savedDealIds.includes(String(deal.id))} />
+                    </button>
                   </div>
                   <strong>
                     <a
@@ -1062,7 +1150,7 @@ export default function HomeClient({
           ))}
         </div>
         <div className="deal-grid">
-          {visibleHotDeals.map((deal, i) => (
+          {visibleHotDeals.map((deal) => (
             <article className="deal" key={deal.id}>
               <div className="placeholder">
                 <a
@@ -1082,22 +1170,17 @@ export default function HomeClient({
                 <b>−{deal.discountPercent}%</b>
                 <span>🔥 {deal.dealScore}</span>
                 <button
+                  type="button"
+                  className={`deal-fav-btn ${savedDealIds.includes(String(deal.id)) ? "is-active" : ""}`}
                   aria-label={
-                    saved.includes(i) ? "Bỏ lưu deal" : "Lưu deal"
+                    savedDealIds.includes(String(deal.id)) ? "Bỏ lưu deal" : "Lưu deal yêu thích"
                   }
-                  onClick={() => {
-                    const exists = saved.includes(i);
-                    setSaved(
-                      exists ? saved.filter((x) => x !== i) : [...saved, i],
-                    );
-                    notify(
-                      exists
-                        ? "Đã bỏ lưu deal"
-                        : "Đã lưu deal — sẽ báo khi giảm thêm",
-                    );
-                  }}
+                  title={
+                    savedDealIds.includes(String(deal.id)) ? "Bỏ lưu deal" : "Lưu deal yêu thích"
+                  }
+                  onClick={(e) => toggleFavoriteDeal(deal, e)}
                 >
-                  {saved.includes(i) ? "♥" : "♡"}
+                  <HeartIcon filled={savedDealIds.includes(String(deal.id))} />
                 </button>
               </div>
               <div className="deal-body">
