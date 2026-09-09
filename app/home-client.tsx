@@ -840,7 +840,6 @@ export default function HomeClient({
               <LazadaLogo />
               Lazada
             </button>
-            <span className="chips-subtext">· không cần đăng nhập</span>
           </div>
           <div className="live" aria-label="Hoạt động hoàn tiền trực tiếp">
             <b>
