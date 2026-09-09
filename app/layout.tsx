@@ -22,8 +22,30 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://deal-hoan.vercel.app"),
   title: "DealHoàn — Săn deal & hoàn tiền",
   description: "Nền tảng săn deal và hoàn tiền cho người mua sắm thông minh.",
+  openGraph: {
+    type: "website",
+    locale: "vi_VN",
+    siteName: "DealHoàn",
+    title: "DealHoàn — Săn deal & hoàn tiền",
+    description: "Nền tảng săn deal và hoàn tiền cho người mua sắm thông minh.",
+    images: [
+      {
+        url: "/brand/deal-hoan-logo.png",
+        width: 1536,
+        height: 1024,
+        alt: "DealHoàn — Săn deal · Hoàn tiền",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DealHoàn — Săn deal & hoàn tiền",
+    description: "Nền tảng săn deal và hoàn tiền cho người mua sắm thông minh.",
+    images: ["/brand/deal-hoan-logo.png"],
+  },
   icons: {
     icon: [
       { url: "/favicon.ico" },

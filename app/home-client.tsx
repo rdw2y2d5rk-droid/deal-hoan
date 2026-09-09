@@ -54,7 +54,8 @@ const HOT_SORTERS: ((a: Deal, b: Deal) => number)[] = [
 const COUPON_TABS: { key: CouponCategory; label: string }[] = [
   { key: "all", label: "Tất cả" },
   { key: "toan_san", label: "Toàn sàn" },
-  { key: "freeship", label: "Freeship" },
+  { key: "freeship", label: "Freeship 0đ" },
+  { key: "vip", label: "Gói Shopee VIP" },
   { key: "mall", label: "Shopee Mall" },
   { key: "live", label: "Shopee Live" },
 ];
@@ -1236,6 +1237,46 @@ export default function HomeClient({
             Mã giảm giá Shopee hôm nay — tự động cập nhật và áp cùng cashback hoàn tiền.
           </p>
         </div>
+
+        <div className="coupon-hubs">
+          <a
+            href={getAffiliateUrl("https://shopee.vn/m/ma-giam-gia")}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="coupon-hub-pill"
+          >
+            <span className="hub-icon">🎟️</span>
+            <div>
+              <b>Kho Voucher Toàn Sàn</b>
+              <small>shopee.vn/m/ma-giam-gia ↗</small>
+            </div>
+          </a>
+          <a
+            href={getAffiliateUrl("https://shopee.vn/m/mien-phi-van-chuyen")}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="coupon-hub-pill"
+          >
+            <span className="hub-icon">🚚</span>
+            <div>
+              <b>Mã Freeship 0đ</b>
+              <small>shopee.vn/m/mien-phi-van-chuyen ↗</small>
+            </div>
+          </a>
+          <a
+            href={getAffiliateUrl("https://shopee.vn/m/goi-ShopeeVIP")}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="coupon-hub-pill vip"
+          >
+            <span className="hub-icon">⭐</span>
+            <div>
+              <b>Gói Shopee VIP</b>
+              <small>shopee.vn/m/goi-ShopeeVIP ↗</small>
+            </div>
+          </a>
+        </div>
+
         <div className="tabs">
           {COUPON_TABS.map((t) => (
             <button
@@ -1259,16 +1300,22 @@ export default function HomeClient({
                 <p>{c.condition}</p>
                 <footer>
                   <code>{c.code}</code>
-                  <button
+                  <a
+                    href={getAffiliateUrl(c.url || "https://shopee.vn/m/ma-giam-gia")}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="coupon-action-btn"
                     onClick={() => {
-                      navigator.clipboard?.writeText(c.code);
-                      setCopiedCode(c.code);
-                      notify("Đã copy mã " + c.code + " — dán khi thanh toán trên Shopee");
-                      setTimeout(() => setCopiedCode(null), 2500);
+                      if (c.code) {
+                        navigator.clipboard?.writeText(c.code);
+                        setCopiedCode(c.code);
+                        notify(`✓ Đã copy mã ${c.code} — Đang mở Shopee để bạn lưu mã...`);
+                        setTimeout(() => setCopiedCode(null), 3000);
+                      }
                     }}
                   >
-                    {copiedCode === c.code ? "✓ Đã copy" : "Copy mã"}
-                  </button>
+                    {copiedCode === c.code ? "✓ Đang mở Shopee" : "Lấy mã & Mở App ↗"}
+                  </a>
                 </footer>
               </section>
             </article>

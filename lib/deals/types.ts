@@ -42,7 +42,7 @@ export interface DealProvider {
   fetchDeals(): Promise<Deal[]>;
 }
 
-export type CouponCategory = "all" | "toan_san" | "freeship" | "mall" | "live";
+export type CouponCategory = "all" | "toan_san" | "freeship" | "vip" | "mall" | "live";
 
 export type Coupon = {
   id: string;

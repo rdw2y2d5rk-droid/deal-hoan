@@ -1687,13 +1687,85 @@ h2,
   font-size: 12px;
   font-weight: 700;
 }
+.coupon-hubs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.coupon-hub-pill {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 14px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  text-decoration: none;
+  color: #171717;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.coupon-hub-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(238, 77, 45, 0.15);
+  border-color: #ee4d2d;
+}
+.coupon-hub-pill .hub-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.coupon-hub-pill div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.coupon-hub-pill b {
+  font-size: 13px;
+  font-weight: 700;
+  color: #171717;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.coupon-hub-pill small {
+  font-size: 10.5px;
+  color: #ee4d2d;
+  font-weight: 600;
+}
+.coupon-hub-pill.vip {
+  border-color: rgba(238, 77, 45, 0.25);
+  background: linear-gradient(135deg, #ffffff 0%, #fff6f4 100%);
+}
+.coupon-action-btn,
 .coupon button {
-  padding: 7px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 13px;
   border: 0;
   border-radius: 8px;
-  background: #171717;
+  background: #ee4d2d;
   color: #fff;
   font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s ease;
+  box-shadow: 0 1px 4px rgba(238, 77, 45, 0.2);
+}
+.coupon-action-btn:hover,
+.coupon button:hover {
+  background: #d73211;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(238, 77, 45, 0.3);
+  color: #fff;
+}
+.coupon-action-btn:active,
+.coupon button:active {
+  transform: scale(0.96);
 }
 .how {
   display: grid;
@@ -3599,6 +3671,16 @@ select.account-input.select-bank-field:focus {
     border-radius: 8px;
   }
 
+  /* Coupon Hubs Mobile */
+  .coupon-hubs {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .coupon-hub-pill {
+    padding: 8px 12px;
+  }
+
   /* Coupons Grid */
   .coupon-grid {
     grid-template-columns: 1fr;
@@ -3639,7 +3721,8 @@ select.account-input.select-bank-field:focus {
     padding: 2.5px 7px;
     border-radius: 6px;
   }
-  .coupon footer button {
+  .coupon footer button,
+  .coupon footer .coupon-action-btn {
     padding: 5px 11px;
     font-size: 11px;
     border-radius: 7px;
