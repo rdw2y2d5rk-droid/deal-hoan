@@ -856,57 +856,51 @@ export default function HomeClient({
         <div className="flash">
           <div className="flash-top">
             <div className="flash-top-left">
-              <h2>
-                ⚡ Deal chớp nhoáng
+              <h2>⚡ Deal chớp nhoáng</h2>
+              <div className="flash-countdown-group">
                 {flashSlot && (
-                  <span
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      marginLeft: "8px",
-                      opacity: 0.85,
-                      verticalAlign: "middle",
-                    }}
-                  >
-                    ({flashSlot})
+                  <span className="flash-slot">
+                    {flashSlot}
                   </span>
                 )}
-              </h2>
-              <div className="timer">
-                <span>{tm[0]}</span>
-                <span className="timer-colon">:</span>
-                <span>{tm[1]}</span>
-                <span className="timer-colon">:</span>
-                <span className="timer-sec">{tm[2]}</span>
+                <div className="timer">
+                  <span>{tm[0]}</span>
+                  <span className="timer-colon">:</span>
+                  <span>{tm[1]}</span>
+                  <span className="timer-colon">:</span>
+                  <span className="timer-sec">{tm[2]}</span>
+                </div>
               </div>
             </div>
             <div className="flash-top-right">
-              <button
-                type="button"
-                className="flash-nav-btn"
-                title="Cuộn trái"
-                onClick={() => {
-                  pauseFlash(8000);
-                  if (flashScrollRef.current) {
-                    flashScrollRef.current.scrollBy({ left: -260, behavior: "smooth" });
-                  }
-                }}
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                className="flash-nav-btn"
-                title="Cuộn phải"
-                onClick={() => {
-                  pauseFlash(8000);
-                  if (flashScrollRef.current) {
-                    flashScrollRef.current.scrollBy({ left: 260, behavior: "smooth" });
-                  }
-                }}
-              >
-                ›
-              </button>
+              <div className="flash-nav-btns">
+                <button
+                  type="button"
+                  className="flash-nav-btn"
+                  title="Cuộn trái"
+                  onClick={() => {
+                    pauseFlash(8000);
+                    if (flashScrollRef.current) {
+                      flashScrollRef.current.scrollBy({ left: -260, behavior: "smooth" });
+                    }
+                  }}
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  className="flash-nav-btn"
+                  title="Cuộn phải"
+                  onClick={() => {
+                    pauseFlash(8000);
+                    if (flashScrollRef.current) {
+                      flashScrollRef.current.scrollBy({ left: 260, behavior: "smooth" });
+                    }
+                  }}
+                >
+                  ›
+                </button>
+              </div>
               <a href="#deals">Xem tất cả →</a>
             </div>
           </div>
