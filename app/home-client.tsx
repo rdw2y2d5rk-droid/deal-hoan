@@ -283,6 +283,15 @@ export default function HomeClient({
   const linkInputRef = useRef<HTMLInputElement>(null);
   const flashScrollRef = useRef<HTMLDivElement>(null);
   const isFlashHoveredRef = useRef(false);
+  const flashPauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const pauseFlash = (ms = 6000) => {
+    isFlashHoveredRef.current = true;
+    if (flashPauseTimeoutRef.current) clearTimeout(flashPauseTimeoutRef.current);
+    flashPauseTimeoutRef.current = setTimeout(() => {
+      isFlashHoveredRef.current = false;
+    }, ms);
+  };
   const [link, setLink] = useState("");
   const [result, setResult] = useState("");
   const [resultClosing, setResultClosing] = useState(false);
@@ -349,8 +358,11 @@ export default function HomeClient({
             el.scrollLeft >= max - 10 ? 0 : Math.min(el.scrollLeft + 246, max),
           behavior: "smooth",
         });
-    }, 2000);
-    return () => clearInterval(timer);
+    }, 4500);
+    return () => {
+      clearInterval(timer);
+      if (flashPauseTimeoutRef.current) clearTimeout(flashPauseTimeoutRef.current);
+    };
   }, []);
   const notify = (m: string) => {
     setToast(m);
@@ -762,6 +774,7 @@ export default function HomeClient({
               <LazadaLogo />
               Lazada
             </button>
+            <span className="chips-subtext">· không cần đăng nhập</span>
           </div>
           <div className="live" aria-label="Hoạt động hoàn tiền trực tiếp">
             <b>
@@ -842,28 +855,60 @@ export default function HomeClient({
       <section className="container flash-section">
         <div className="flash">
           <div className="flash-top">
-            <h2>
-              ⚡ Deal chớp nhoáng
-              {flashSlot && (
-                <span
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    marginLeft: "8px",
-                    opacity: 0.85,
-                    verticalAlign: "middle",
-                  }}
-                >
-                  ({flashSlot})
-                </span>
-              )}
-            </h2>
-            <div className="timer">
-              {tm.map((t, i) => (
-                <span key={i}>{t}</span>
-              ))}
+            <div className="flash-top-left">
+              <h2>
+                ⚡ Deal chớp nhoáng
+                {flashSlot && (
+                  <span
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 500,
+                      marginLeft: "8px",
+                      opacity: 0.85,
+                      verticalAlign: "middle",
+                    }}
+                  >
+                    ({flashSlot})
+                  </span>
+                )}
+              </h2>
+              <div className="timer">
+                <span>{tm[0]}</span>
+                <span className="timer-colon">:</span>
+                <span>{tm[1]}</span>
+                <span className="timer-colon">:</span>
+                <span className="timer-sec">{tm[2]}</span>
+              </div>
             </div>
-            <a>Xem tất cả →</a>
+            <div className="flash-top-right">
+              <button
+                type="button"
+                className="flash-nav-btn"
+                title="Cuộn trái"
+                onClick={() => {
+                  pauseFlash(8000);
+                  if (flashScrollRef.current) {
+                    flashScrollRef.current.scrollBy({ left: -260, behavior: "smooth" });
+                  }
+                }}
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="flash-nav-btn"
+                title="Cuộn phải"
+                onClick={() => {
+                  pauseFlash(8000);
+                  if (flashScrollRef.current) {
+                    flashScrollRef.current.scrollBy({ left: 260, behavior: "smooth" });
+                  }
+                }}
+              >
+                ›
+              </button>
+              <a href="#deals">Xem tất cả →</a>
+            </div>
           </div>
           <div
             className="flash-scroll"
@@ -878,7 +923,10 @@ export default function HomeClient({
               isFlashHoveredRef.current = true;
             }}
             onTouchEnd={() => {
-              isFlashHoveredRef.current = false;
+              pauseFlash(6000);
+            }}
+            onWheel={() => {
+              pauseFlash(6000);
             }}
           >
             <div className="flash-grid">

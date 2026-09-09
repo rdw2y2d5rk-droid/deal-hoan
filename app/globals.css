@@ -103,7 +103,8 @@ a {
 .container {
   max-width: 1280px;
   margin: auto;
-  padding: 0 24px;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 .utility {
   height: 31px;
@@ -306,6 +307,7 @@ header {
 .hero-inner {
   position: relative;
   padding-top: 60px;
+  padding-bottom: 44px;
   text-align: center;
 }
 .badge {
@@ -318,6 +320,7 @@ header {
   color: #d73211;
   font-size: 13px;
   font-weight: 700;
+  margin-bottom: 20px;
 }
 .badge i,
 .live i {
@@ -333,7 +336,7 @@ h2,
   font-family: Archivo;
 }
 .hero h1 {
-  margin: 20px 0 14px;
+  margin: 0 0 14px;
   font-size: 54px;
   line-height: 1.06;
   letter-spacing: -2px;
@@ -1092,6 +1095,10 @@ h2,
 .chips {
   margin-bottom: 24px;
 }
+.chips-subtext {
+  color: #a3a3a3;
+  font-size: 12.5px;
+}
 .chips button,
 .tabs button {
   padding: 5px 12px;
@@ -1150,7 +1157,7 @@ h2,
 }
 .stats {
   gap: 32px;
-  margin-bottom: 44px;
+  margin-bottom: 0;
   text-align: left;
   font-size: 13px;
 }
@@ -1252,30 +1259,84 @@ h2,
 .flash-top {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 20px;
   padding: 18px 24px;
-  background: linear-gradient(120deg, #ee4d2d, #ff7337);
+  background: linear-gradient(120deg, #ee4d2d 0%, #ff7337 100%);
   color: #fff;
+  flex-wrap: wrap;
+}
+.flash-top-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.flash-top-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .flash-top h2 {
   margin: 0;
   font-size: 23px;
   font-weight: 800;
+  color: #fff;
+}
+.flash-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 2px;
+  transition: background 0.15s ease;
+}
+.flash-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
 }
 .flash-top a {
-  margin-left: auto;
-  font-size: 13px;
+  margin-left: 8px;
+  font-size: 13.5px;
   font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.flash-top a:hover {
+  color: #ffe3d8;
 }
 .timer {
   display: flex;
+  align-items: center;
   gap: 5px;
 }
 .timer span {
   padding: 5px 8px;
   border-radius: 8px;
-  background: #ffffff38;
-  font: 800 15px Archivo;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font: 800 15px Archivo, sans-serif;
+  min-width: 22px;
+  text-align: center;
+}
+.timer span.timer-colon {
+  padding: 0 1px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 800;
+  min-width: auto;
+}
+.timer span.timer-sec {
+  background: #ffffff;
+  color: #d73211;
 }
 .flash-grid {
   display: grid;
@@ -1348,11 +1409,16 @@ h2,
 }
 .block {
   padding-top: 44px;
+  padding-bottom: 8px;
+}
+#referral.block {
+  padding-bottom: 44px;
 }
 .heading {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  margin-bottom: 6px;
 }
 .heading h2,
 .how h2,
@@ -1370,6 +1436,7 @@ h2,
 .how > div > p {
   color: #737373;
   font-size: 14px;
+  margin: 0 0 18px;
 }
 .heading > a,
 .deal a {
@@ -1381,7 +1448,7 @@ h2,
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin: 20px 0;
+  margin: 0 0 20px;
 }
 .tabs button {
   padding: 9px 17px;
@@ -1889,7 +1956,8 @@ h2,
 @media (min-width: 1441px) {
   .container {
     max-width: 1320px;
-    padding: 0 32px;
+    padding-left: 32px;
+    padding-right: 32px;
   }
   .deal-grid {
     grid-template-columns: repeat(4, 1fr);
@@ -1900,11 +1968,12 @@ h2,
   }
 }
 
-/* 2. Laptop (1025px - 1440px) - [QUAN TRỌNG] */
-@media (min-width: 1025px) and (max-width: 1440px) {
+/* 2. Laptop (1024px - 1440px) - [QUAN TRỌNG] */
+@media (min-width: 1024px) and (max-width: 1440px) {
   .container {
     max-width: 1200px;
-    padding: 0 24px;
+    padding-left: 24px;
+    padding-right: 24px;
   }
   .nav {
     gap: 20px;
@@ -1930,10 +1999,11 @@ h2,
   }
 }
 
-/* 3. Tablet (641px - 1024px) */
-@media (min-width: 641px) and (max-width: 1024px) {
+/* 3. Tablet (641px - 1023px) */
+@media (min-width: 641px) and (max-width: 1023px) {
   .container {
-    padding: 0 20px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
   .utility .utility-left > span {
     display: none;
@@ -1960,7 +2030,8 @@ h2,
     flex-shrink: 0;
   }
   .hero-inner {
-    padding: 48px 0 28px;
+    padding-top: 48px;
+    padding-bottom: 32px;
   }
   .hero h1 {
     font-size: clamp(38px, 6vw, 46px);
@@ -1972,6 +2043,18 @@ h2,
   .platforms {
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
+    padding-bottom: 32px;
+  }
+  .flash-section {
+    padding-top: 36px;
+    padding-bottom: 8px;
+  }
+  .block {
+    padding-top: 36px;
+    padding-bottom: 8px;
+  }
+  #referral.block {
+    padding-bottom: 36px;
   }
   .platform {
     padding: 14px 12px;
@@ -2051,7 +2134,8 @@ h2,
     text-align: center;
   }
   .container {
-    padding: 0 16px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   /* Utility bar */
@@ -2275,10 +2359,11 @@ h2,
 
   /* Flash Deals Section */
   .flash-section {
-    padding: 0 16px;
+    padding-top: 28px;
+    padding-bottom: 8px;
   }
   .flash {
-    margin-top: 24px;
+    margin-top: 0;
     border-radius: 14px;
   }
   .flash-top {
@@ -2308,6 +2393,10 @@ h2,
   /* Hot Deals Section */
   .block {
     padding-top: 32px;
+    padding-bottom: 8px;
+  }
+  #referral.block {
+    padding-bottom: 32px;
   }
   .heading {
     flex-direction: column;
@@ -2629,7 +2718,8 @@ h2,
 /* 5. Extra small mobile screens (iPhone SE, Galaxy A-series < 380px) */
 @media (max-width: 380px) {
   .container {
-    padding: 0 12px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
   .brand-mark {
     width: 32px;
