@@ -2663,10 +2663,24 @@ h2,
     border-radius: 11px;
   }
   .receipt-foot {
-    flex-wrap: wrap;
-    gap: 8px 14px;
-    font-size: 11px;
-    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+    text-align: center;
+  }
+  .receipt-foot > span {
+    white-space: normal;
+    font-size: 11.5px;
+    line-height: 1.45;
+    color: #737373;
+  }
+  .receipt-foot .result-reset {
+    margin: 0 auto;
+    font-size: 12px;
+    padding: 6px 16px;
+    min-height: 32px;
   }
 
   /* How it Works */
@@ -2882,6 +2896,18 @@ h2,
     width: 24px;
     height: 24px;
     font-size: 13px;
+  }
+  .receipt-foot {
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .receipt-foot > span {
+    font-size: 10.5px;
+  }
+  .receipt-foot .result-reset {
+    font-size: 11.5px;
+    min-height: 30px;
+    padding: 4px 14px;
   }
 }
 
