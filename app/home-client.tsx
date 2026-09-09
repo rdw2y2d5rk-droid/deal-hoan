@@ -660,8 +660,8 @@ export default function HomeClient({
             biết ngay <span>tiền được hoàn</span>
           </h1>
           <p>
-            DealHoàn tự áp mã giảm giá, so giá 30 ngày và tính sẵn{" "}
-            <b>chi phí thực sau hoàn tiền</b> — trước khi bạn bấm mua.
+            Tự áp mã, so giá và tính sẵn{" "}
+            <b>chi phí thực sau hoàn tiền</b> trước khi mua.
           </p>
           <form
             className={`calculator ${inputError ? "input-error" : ""} ${link ? "has-link" : ""}`}
@@ -975,7 +975,6 @@ export default function HomeClient({
                   ›
                 </button>
               </div>
-              <a href="#deals">Xem tất cả →</a>
             </div>
           </div>
           <div
